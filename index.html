@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Arándanos de Vida</title>
+    <!-- Librería para leer códigos de barras y QR -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        /* Estilos basados en tu diseño original */
+        :root {
+            --primary: #5b21b6; /* Morado Arándano */
+            --primary-dark: #4c1d95;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        .hidden { display: none !important; }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            background: #1e293b;
+        }
+        nav button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        nav button.active { background: var(--primary-dark); }
+        
+        main { max-width: 600px; margin: 0 auto; padding: 1rem; }
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.3rem; }
+        input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+        
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem;
+        }
+        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;}
+        .flex-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Arándanos de Vida</h2>
+    </header>
+    
+    <nav>
+        <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Pedidos</button>
+        <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Inventario</button>
+        <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
+    </nav>
+
+    <main>
+        <!-- PESTAÑA: PEDIDOS -->
+        <section id="sec-pedidos" class="card">
+            <h3>Nuevo Pedido</h3>
+            <div class="form-group"><label>Fecha</label><input type="date" id="ped_fecha"></div>
+            <div class="form-group"><label>Nombre Cliente</label><input type="text" id="ped_cliente"></div>
+            <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
+            <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
+            <div class="form-group"><label>Teléfono</label><input type="tel" id="ped_telefono"></div>
+            <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
+            <div class="form-group"><label>Correo</label><input type="email" id="ped_correo"></div>
+            <div class="form-group"><label>Producto</label><input type="text" id="ped_producto"></div>
+            <div class="form-group"><label>Código EAN 13</label><input type="text" id="ped_ean"></div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="ped_cantidad"></div>
+            <div class="form-group"><label>Valor Unitario</label><input type="number" id="ped_vunitario"></div>
+            <div class="form-group"><label>Total</label><input type="number" id="ped_total"></div>
+            
+            <!-- NUEVO CAMPO: Estado del Pedido -->
+            <div class="form-group">
+                <label>Estado</label>
+                <select id="ped_estado">
+                    <option value="ingresado">Ingresado</option>
+                    <option value="en proceso">En proceso</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="despachado">Despachado</option>
+                    <option value="entregado">Entregado</option>
+                </select>
+            </div>
+            
+            <div class="form-group"><label>Vendedor</label><input type="text" id="ped_vendedor"></div>
+            
+            <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido</button>
+            
+            <div class="flex-buttons">
+                <button class="btn-action" onclick="alert('Módulo de remisión en construcción')">Generar Remisión</button>
+                <button class="btn-action" onclick="alert('Módulo de facturación en construcción')">Integrar Facturación</button>
+            </div>
+        </section>
+
+        <!-- PESTAÑA: INVENTARIO (ESCANER) -->
+        <section id="sec-inventario" class="card hidden">
+            <h3>Inventario (Lector EAN 13)</h3>
+            <p style="font-size: 0.8rem; margin-bottom: 10px;">Apunta la cámara al código de barras de tu producto terminado.</p>
+            <div id="reader"></div>
+            <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
+            <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
+        </section>
+
+        <!-- PESTAÑA: INSUMOS -->
+        <section id="sec-insumos" class="card hidden">
+            <h3>Control de Insumos</h3>
+            <div class="form-group"><label>Fecha</label><input type="date" id="ins_fecha"></div>
+            <div class="form-group">
+                <label>Insumo</label>
+                <select id="ins_nombre">
+                    <option value="Arándanos">Arándanos</option>
+                    <option value="Frasco">Frasco</option>
+                    <option value="Tapa">Tapa</option>
+                    <option value="Etiqueta delantera">Etiqueta delantera</option>
+                    <option value="Etiqueta trasera">Etiqueta trasera</option>
+                    <option value="Pectina">Pectina</option>
+                    <option value="Ácido cítrico">Ácido cítrico</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="ins_movimiento">
+                    <option value="Entrada">Entrada (Compra/Ingreso)</option>
+                    <option value="Salida">Salida (Consumo/Uso)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
+            <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
+        </section>
+    </main>
+
+    <script>
+        // --- CONFIGURACIÓN IMPORTANTE ---
+        // Pega aquí la URL que obtuviste de Google Apps Script
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzw0UU88enPnlBEstcEwYajP7YkX-Ia1XXlUHfh_gczMl8wneeQGkimuc88QpgwI7e7IA/exec";
+
+        // Diccionario de tus productos EAN 13
+        const catalogoProductos = {
+            "7709034887757": "Concentrado de Arándanos pequeño (130ml)",
+            "7709034887788": "Concentrado de Arándanos mediano (250ml)",
+            "7709034887726": "Concentrado de Arándanos grande (500ml)"
+        };
+
+        // Lógica de Pestañas
+        function cambiarPestaña(pestaña) {
+            document.getElementById('sec-pedidos').classList.add('hidden');
+            document.getElementById('sec-inventario').classList.add('hidden');
+            document.getElementById('sec-insumos').classList.add('hidden');
+            document.getElementById('btn-tab-pedidos').classList.remove('active');
+            document.getElementById('btn-tab-inventario').classList.remove('active');
+            document.getElementById('btn-tab-insumos').classList.remove('active');
+
+            document.getElementById('sec-' + pestaña).classList.remove('hidden');
+            document.getElementById('btn-tab-' + pestaña).classList.add('active');
+            
+            // Si salimos de inventario, detenemos la cámara por si acaso
+            if(pestaña !== 'inventario') detenerEscanner();
+        }
+
+        // Función central para enviar datos a Google Sheets
+        async function enviarDatos(datos) {
+            try {
+                const response = await fetch(URL_GOOGLE_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                alert("Los datos se enviaron a la base de datos.");
+                
+                // Limpiar algunos campos después de enviar
+                document.getElementById('ped_fecha').value = "";
+                document.getElementById('ins_fecha').value = "";
+                document.getElementById('ped_cantidad').value = "";
+                document.getElementById('ins_cantidad').value = "";
+            } catch (error) {
+                alert("Hubo un error al enviar: " + error);
+            }
+        }
+
+        // Lógica: Guardar Pedido
+        function guardarPedido() {
+            const datos = {
+                accion: "guardar_pedido",
+                fecha: document.getElementById('ped_fecha').value,
+                nombreCliente: document.getElementById('ped_cliente').value,
+                sucursal: document.getElementById('ped_sucursal').value,
+                direccion: document.getElementById('ped_direccion').value,
+                telefono: document.getElementById('ped_telefono').value,
+                ciudad: document.getElementById('ped_ciudad').value,
+                correo: document.getElementById('ped_correo').value,
+                producto: document.getElementById('ped_producto').value,
+                codigoEan: document.getElementById('ped_ean').value,
+                cantidad: document.getElementById('ped_cantidad').value,
+                valorUnitario: document.getElementById('ped_vunitario').value,
+                total: document.getElementById('ped_total').value,
+                estado: document.getElementById('ped_estado').value, // NUEVO CAMPO
+                vendedor: document.getElementById('ped_vendedor').value
+            };
+            enviarDatos(datos);
+        }
+
+        // Lógica: Guardar Insumo
+        function guardarInsumo() {
+            const datos = {
+                accion: "guardar_insumo",
+                fecha: document.getElementById('ins_fecha').value,
+                insumo: document.getElementById('ins_nombre').value,
+                movimiento: document.getElementById('ins_movimiento').value,
+                cantidad: document.getElementById('ins_cantidad').value
+            };
+            enviarDatos(datos);
+        }
+
+        // --- LÓGICA DEL ESCÁNER EAN 13 ---
+        let html5QrCode = null;
+
+        function iniciarEscanner() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 100 } }, 
+                (codigoLeido) => {
+                    detenerEscanner();
+                    procesarCodigoEAN(codigoLeido);
+                },
+                (error) => { /* Ignorar errores continuos de lectura de la cámara */ }
+            ).catch(err => {
+                alert("Error al abrir la cámara. Asegúrate de dar permisos en tu navegador.");
+            });
+        }
+
+        function detenerEscanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    // Cámara detenida exitosamente
+                }).catch(err => console.log(err));
+            }
+        }
+
+        function procesarCodigoEAN(codigo) {
+            let nombreProducto = catalogoProductos[codigo];
+            
+            if(nombreProducto) {
+                let movimiento = prompt(`Producto: ${nombreProducto}\n\nEscribe "Entrada" (para ingresar inventario) o "Salida" (para descontar):`, "Entrada");
+                
+                if(movimiento === null) return; 
+                
+                let cantidad = prompt(`¿Cuántas unidades de ${nombreProducto} vas a registrar?`, "1");
+                
+                if(cantidad !== null && cantidad > 0) {
+                    const datos = {
+                        accion: "guardar_inventario",
+                        fecha: new Date().toLocaleDateString('es-CO'),
+                        codigoEan: codigo,
+                        producto: nombreProducto,
+                        movimiento: movimiento,
+                        cantidad: cantidad
+                    };
+                    enviarDatos(datos);
+                }
+            } else {
+                alert("El código " + codigo + " no pertenece a un producto terminado registrado.");
+            }
+        }
+    </script>
+</body>
+</html>
