@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
-        /* Estilos basados en tu diseño original */
         :root {
             --primary: #5b21b6; /* Morado Arándano */
             --primary-dark: #4c1d95;
@@ -29,20 +28,23 @@
         nav {
             display: flex;
             background: #1e293b;
+            overflow-x: auto;
         }
         nav button {
             flex: 1;
-            padding: 1rem;
+            padding: 0.8rem;
             background: none;
             border: none;
             color: white;
             font-weight: bold;
             cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
         }
         nav button.active { background: var(--primary-dark); }
         
-        main { max-width: 600px; margin: 0 auto; padding: 1rem; }
-        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        main { max-width: 700px; margin: 0 auto; padding: 1rem; }
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
         h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
         
         .form-group { margin-bottom: 1rem; }
@@ -56,7 +58,13 @@
         .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;}
         .flex-buttons { display: flex; gap: 10px; margin-top: 10px; }
         
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;}
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; background: #000; }
+        
+        /* Estilos para las tablas del módulo administrativo */
+        .table-container { overflow-x: auto; max-height: 300px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; }
+        th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; position: sticky; top: 0; }
     </style>
 </head>
 <body>
@@ -67,8 +75,9 @@
     
     <nav>
         <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Pedidos</button>
-        <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Inventario</button>
+        <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear</button>
         <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
+        <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Admin</button>
     </nav>
 
     <main>
@@ -88,7 +97,6 @@
             <div class="form-group"><label>Valor Unitario</label><input type="number" id="ped_vunitario"></div>
             <div class="form-group"><label>Total</label><input type="number" id="ped_total"></div>
             
-            <!-- NUEVO CAMPO: Estado del Pedido -->
             <div class="form-group">
                 <label>Estado</label>
                 <select id="ped_estado">
@@ -110,10 +118,10 @@
             </div>
         </section>
 
-        <!-- PESTAÑA: INVENTARIO (ESCANER) -->
+        <!-- PESTAÑA: INVENTARIO (ESCANER MEJORADO) -->
         <section id="sec-inventario" class="card hidden">
-            <h3>Inventario (Lector EAN 13)</h3>
-            <p style="font-size: 0.8rem; margin-bottom: 10px;">Apunta la cámara al código de barras de tu producto terminado.</p>
+            <h3>Lector EAN 13 (Inventario)</h3>
+            <p style="font-size: 0.8rem; margin-bottom: 10px;">Aleja un poco el celular y centra las barras verticales rojas sobre el código EAN 13 de la etiqueta.</p>
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
@@ -145,50 +153,62 @@
             <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
             <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
         </section>
+
+        <!-- PESTAÑA: ADMINISTRACIÓN (VISTAS DE DATOS) -->
+        <section id="sec-admin" class="card hidden">
+            <h3>Panel Administrativo</h3>
+            <p style="font-size: 0.8rem; margin-bottom: 10px;">Visualización de datos sincronizados en Google Sheets.</p>
+            
+            <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosAdmin()">Actualizar Datos desde la Nube</button>
+            
+            <h4 style="font-size: 0.85rem; color: var(--primary); margin-top: 1rem;">Cuadro de Pedidos</h4>
+            <div class="table-container" id="tabla-pedidos-box">Cargando...</div>
+
+            <h4 style="font-size: 0.85rem; color: var(--primary); margin-top: 1rem;">Inventario Producto Terminado</h4>
+            <div class="table-container" id="tabla-inventario-box">Cargando...</div>
+
+            <h4 style="font-size: 0.85rem; color: var(--primary); margin-top: 1rem;">Cuadro de Insumos</h4>
+            <div class="table-container" id="tabla-insumos-box">Cargando...</div>
+        </section>
     </main>
 
     <script>
-        // --- CONFIGURACIÓN IMPORTANTE ---
-        // Pega aquí la URL que obtuviste de Google Apps Script
+        // Pega tu URL de Google Apps Script aquí
         const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzw0UU88enPnlBEstcEwYajP7YkX-Ia1XXlUHfh_gczMl8wneeQGkimuc88QpgwI7e7IA/exec";
 
-        // Diccionario de tus productos EAN 13
         const catalogoProductos = {
             "7709034887757": "Concentrado de Arándanos pequeño (130ml)",
             "7709034887788": "Concentrado de Arándanos mediano (250ml)",
             "7709034887726": "Concentrado de Arándanos grande (500ml)"
         };
 
-        // Lógica de Pestañas
         function cambiarPestaña(pestaña) {
             document.getElementById('sec-pedidos').classList.add('hidden');
             document.getElementById('sec-inventario').classList.add('hidden');
             document.getElementById('sec-insumos').classList.add('hidden');
+            document.getElementById('sec-admin').classList.add('hidden');
+            
             document.getElementById('btn-tab-pedidos').classList.remove('active');
             document.getElementById('btn-tab-inventario').classList.remove('active');
             document.getElementById('btn-tab-insumos').classList.remove('active');
+            document.getElementById('btn-tab-admin').classList.remove('active');
 
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
             
-            // Si salimos de inventario, detenemos la cámara por si acaso
             if(pestaña !== 'inventario') detenerEscanner();
+            if(pestaña === 'admin') cargarDatosAdmin();
         }
 
-        // Función central para enviar datos a Google Sheets
         async function enviarDatos(datos) {
             try {
-                const response = await fetch(URL_GOOGLE_SCRIPT, {
+                await fetch(URL_GOOGLE_SCRIPT, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datos)
                 });
-                alert("Los datos se enviaron a la base de datos.");
-                
-                // Limpiar algunos campos después de enviar
-                document.getElementById('ped_fecha').value = "";
-                document.getElementById('ins_fecha').value = "";
+                alert("Operación realizada con éxito.");
                 document.getElementById('ped_cantidad').value = "";
                 document.getElementById('ins_cantidad').value = "";
             } catch (error) {
@@ -196,7 +216,6 @@
             }
         }
 
-        // Lógica: Guardar Pedido
         function guardarPedido() {
             const datos = {
                 accion: "guardar_pedido",
@@ -212,13 +231,12 @@
                 cantidad: document.getElementById('ped_cantidad').value,
                 valorUnitario: document.getElementById('ped_vunitario').value,
                 total: document.getElementById('ped_total').value,
-                estado: document.getElementById('ped_estado').value, // NUEVO CAMPO
+                estado: document.getElementById('ped_estado').value,
                 vendedor: document.getElementById('ped_vendedor').value
             };
             enviarDatos(datos);
         }
 
-        // Lógica: Guardar Insumo
         function guardarInsumo() {
             const datos = {
                 accion: "guardar_insumo",
@@ -230,31 +248,36 @@
             enviarDatos(datos);
         }
 
-        // --- LÓGICA DEL ESCÁNER EAN 13 ---
+        // --- ESCÁNER MEJORADO PARA EAN 13 ---
         let html5QrCode = null;
 
         function iniciarEscanner() {
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("reader");
             }
+            // Ajuste de área de escaneo rectangular idónea para códigos de barras alargados (EAN-13)
+            const configEscaneo = { 
+                fps: 15, 
+                qrbox: { width: 300, height: 120 },
+                aspectRatio: 1.0
+            };
+
             html5QrCode.start(
                 { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 100 } }, 
+                configEscaneo, 
                 (codigoLeido) => {
                     detenerEscanner();
                     procesarCodigoEAN(codigoLeido);
                 },
-                (error) => { /* Ignorar errores continuos de lectura de la cámara */ }
+                (error) => { /* Ignorar errores de escaneo continuos */ }
             ).catch(err => {
-                alert("Error al abrir la cámara. Asegúrate de dar permisos en tu navegador.");
+                alert("Error al abrir la cámara. Asegúrate de dar permisos.");
             });
         }
 
         function detenerEscanner() {
             if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    // Cámara detenida exitosamente
-                }).catch(err => console.log(err));
+                html5QrCode.stop().catch(err => console.log(err));
             }
         }
 
@@ -262,12 +285,10 @@
             let nombreProducto = catalogoProductos[codigo];
             
             if(nombreProducto) {
-                let movimiento = prompt(`Producto: ${nombreProducto}\n\nEscribe "Entrada" (para ingresar inventario) o "Salida" (para descontar):`, "Entrada");
-                
+                let movimiento = prompt(`Producto: ${nombreProducto}\n\nEscribe "Entrada" o "Salida":`, "Entrada");
                 if(movimiento === null) return; 
                 
                 let cantidad = prompt(`¿Cuántas unidades de ${nombreProducto} vas a registrar?`, "1");
-                
                 if(cantidad !== null && cantidad > 0) {
                     const datos = {
                         accion: "guardar_inventario",
@@ -281,6 +302,41 @@
                 }
             } else {
                 alert("El código " + codigo + " no pertenece a un producto terminado registrado.");
+            }
+        }
+
+        // --- CARGAR DATOS EN EL PANEL ADMINISTRATIVO ---
+        async function cargarDatosAdmin() {
+            try {
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
+                const data = await res.json();
+                
+                // Renderizar tabla de pedidos
+                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cant</th><th>Estado</th></tr>";
+                data.pedidos.forEach(p => {
+                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[7]}</td><td>${p[9]}</td><td>${p[13]}</td></tr>`;
+                });
+                htmlPedidos += "</table>";
+                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos;
+
+                // Renderizar tabla de inventario
+                let htmlInv = "<table><tr><th>Fecha</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
+                data.inventario.forEach(i => {
+                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td></tr>`;
+                });
+                htmlInv += "</table>";
+                document.getElementById('tabla-inventario-box').innerHTML = htmlInv;
+
+                // Renderizar tabla de insumos
+                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
+                data.insumos.forEach(is => {
+                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`;
+                });
+                htmlIns += "</table>";
+                document.getElementById('tabla-insumos-box').innerHTML = htmlIns;
+
+            } catch(e) {
+                document.getElementById('tabla-pedidos-box').innerHTML = "Error al cargar (requiere actualizar script backend).";
             }
         }
     </script>
