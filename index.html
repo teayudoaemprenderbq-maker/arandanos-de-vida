@@ -5,44 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Arándanos de Vida</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    
     <style>
-        :root {
-            --primary: #5b21b6;
-            --primary-dark: #4c1d95;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-        }
+        :root { --primary: #5b21b6; --primary-dark: #4c1d95; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); }
         .hidden { display: none !important; }
-        
         header { background: var(--primary); color: white; padding: 1rem; text-align: center; }
         nav { display: flex; background: #1e293b; overflow-x: auto; }
         nav button { flex: 1; padding: 0.8rem; background: none; border: none; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
         nav button.active { background: var(--primary-dark); }
-        
         main { max-width: 900px; margin: 0 auto; padding: 1rem; }
         .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
         h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
-        
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.3rem; }
         input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
-        
         .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
-        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; white-space: nowrap;}
-        
+        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;}
         #reader { width: 100%; max-width: 400px; margin: 0 auto 1rem auto; border-radius: 8px; overflow: hidden; background: #000; }
-        
-        /* Estilos específicos para las tablas */
         .table-container { overflow-x: auto; max-height: 400px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; white-space: nowrap; }
         th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f1f5f9; position: sticky; top: 0; z-index: 10; color: var(--primary-dark); font-weight: bold;}
-        
-        /* Estilos para el sub-menú de Administración */
+        th { background: #f1f5f9; position: sticky; top: 0; color: var(--primary-dark); font-weight: bold;}
         .admin-nav { display: flex; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto;}
         .admin-nav button { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: bold; color: #64748b; font-size: 0.85rem;}
         .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
@@ -50,11 +34,10 @@
         .admin-section.active-sub { display: block; }
     </style>
 </head>
-<body>
+<!-- Se carga la base de datos de clientes y tablas al iniciar la aplicación -->
+<body onload="cargarDatosBase()">
 
-    <header>
-        <h2>Arándanos de Vida</h2>
-    </header>
+    <header><h2>Arándanos de Vida</h2></header>
     
     <nav>
         <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Pedidos</button>
@@ -64,11 +47,18 @@
     </nav>
 
     <main>
-        <!-- PESTAÑA: PEDIDOS -->
         <section id="sec-pedidos" class="card">
             <h3>Nuevo Pedido</h3>
             <div class="form-group"><label>Fecha</label><input type="date" id="ped_fecha"></div>
-            <div class="form-group"><label>Nombre Cliente</label><input type="text" id="ped_cliente"></div>
+            
+            <!-- Campo Cliente con Datalist -->
+            <div class="form-group">
+                <label>Nombre Cliente</label>
+                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Escribe o selecciona un cliente">
+                <datalist id="lista-clientes"></datalist>
+            </div>
+            
+            <div class="form-group"><label>Identificación (NIT/CC)</label><input type="text" id="ped_identificacion"></div>
             <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
             <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
             <div class="form-group"><label>Teléfono</label><input type="tel" id="ped_telefono"></div>
@@ -93,15 +83,14 @@
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido</button>
         </section>
 
-        <!-- PESTAÑA: INVENTARIO (ESCÁNER) -->
         <section id="sec-inventario" class="card hidden">
-            <h3>Lector EAN 13 (Inventario)</h3>
+            <h3>Lector (Inventario)</h3>
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
+            <button class="btn-submit" style="background: #eab308; margin-top:5px;" onclick="ingresoManualEAN()">Ingreso Manual EAN</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
         </section>
 
-        <!-- PESTAÑA: INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
             <div class="form-group"><label>Fecha</label><input type="date" id="ins_fecha"></div>
@@ -115,47 +104,30 @@
             </div>
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
-                <select id="ins_movimiento">
-                    <option value="Entrada">Entrada</option>
-                    <option value="Salida">Salida</option>
-                </select>
+                <select id="ins_movimiento"><option value="Entrada">Entrada</option><option value="Salida">Salida</option></select>
             </div>
             <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
             <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
         </section>
 
-        <!-- PESTAÑA: ADMINISTRACIÓN (SUB-PESTAÑAS) -->
         <section id="sec-admin" class="card hidden">
             <h3>Panel Administrativo</h3>
-            <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosAdmin()">Actualizar Datos desde la Nube</button>
+            <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosBase()">Actualizar Datos de la Nube</button>
             
-            <!-- Navegación interna del panel Admin -->
             <div class="admin-nav">
-                <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Cuadro de Pedidos</button>
+                <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
             </div>
 
-            <!-- Sección: Cuadro de Pedidos Completo -->
-            <div id="admin-pedidos" class="admin-section active-sub">
-                <div class="table-container" id="tabla-pedidos-box">Cargando...</div>
-            </div>
-
-            <!-- Sección: Productos Terminados -->
-            <div id="admin-prod" class="admin-section">
-                <div class="table-container" id="tabla-inventario-box">Cargando...</div>
-            </div>
-
-            <!-- Sección: Insumos -->
-            <div id="admin-insumos" class="admin-section">
-                <div class="table-container" id="tabla-insumos-box">Cargando...</div>
-            </div>
+            <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
+            <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+            <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
     </main>
 
     <script>
-        // Pega aquí la URL de tu Google Apps Script
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxSmKfdooXQ7ULrdhCPXBz-xcxvVKSkcZzRFoVfndBZo1uxzdCZPiFd2YH5BvSoxfZVdw/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyhubX9im0Vu1Xoukvjnzp4hYX9Ofilc_GAixb4eGE08PrhFPRk4UV7JWiV8gBpB1bWeQ/exec";
 
         const catalogoProductos = {
             "7709034887757": "Concentrado de Arándanos pequeño (130ml)",
@@ -163,49 +135,82 @@
             "7709034887726": "Concentrado de Arándanos grande (500ml)"
         };
 
-        // Lógica de Pestañas Principales
+        let baseDatosClientes = [];
+
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
-            
             if(pestaña !== 'inventario') detenerEscanner();
-            if(pestaña === 'admin') cargarDatosAdmin();
         }
 
-        // Lógica de Sub-pestañas en Admin
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
             document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
-            
             document.getElementById(subId).classList.add('active-sub');
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
 
-        async function enviarDatos(datos) {
+        async function cargarDatosBase() {
             try {
-                await fetch(URL_GOOGLE_SCRIPT, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datos)
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
+                const data = await res.json();
+                
+                // Cargar Clientes en Datalist
+                baseDatosClientes = data.clientes;
+                let datalistHtml = "";
+                baseDatosClientes.forEach(cli => {
+                    if(cli[0]) datalistHtml += `<option value="${cli[0]}">`;
                 });
-                alert("Operación enviada con éxito.");
-                if(document.getElementById('sec-admin').classList.contains('hidden') === false) {
-                    cargarDatosAdmin();
-                }
-            } catch (error) {
-                alert("Error al enviar: " + error);
+                document.getElementById('lista-clientes').innerHTML = datalistHtml;
+
+                // Tablas Administrativas
+                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>Total</th><th>Estado</th><th>Acción</th></tr>";
+                data.pedidos.forEach((p, idx) => {
+                    let est = p[13] || "ingresado";
+                    let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[9]}', ${p[10]}, '${p[8]}')">Despachar</button>` : "Completado";
+                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[12]}</td><td><strong>${est}</strong></td><td>${btn}</td></tr>`;
+                });
+                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+
+                let htmlInv = "<table><tr><th>Fecha</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
+                data.inventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td></tr>`);
+                document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+
+                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
+                data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`);
+                document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+            } catch(e) { console.error("Error cargando base", e); }
+        }
+
+        function autocompletarCliente() {
+            let nombreBuscado = document.getElementById('ped_cliente').value;
+            let clienteEncontrado = baseDatosClientes.find(cli => cli[0] === nombreBuscado);
+            
+            if(clienteEncontrado) {
+                document.getElementById('ped_identificacion').value = clienteEncontrado[1] || "";
+                document.getElementById('ped_direccion').value = clienteEncontrado[2] || "";
+                document.getElementById('ped_telefono').value = clienteEncontrado[3] || "";
+                document.getElementById('ped_ciudad').value = clienteEncontrado[4] || "";
+                document.getElementById('ped_correo').value = clienteEncontrado[5] || "";
             }
         }
 
+        async function enviarDatos(datos) {
+            try {
+                await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+                alert("Operación enviada con éxito.");
+                cargarDatosBase();
+            } catch (error) { alert("Error: " + error); }
+        }
+
         function guardarPedido() {
-            const datos = {
+            enviarDatos({
                 accion: "guardar_pedido",
                 fecha: document.getElementById('ped_fecha').value,
                 nombreCliente: document.getElementById('ped_cliente').value,
+                identificacion: document.getElementById('ped_identificacion').value,
                 sucursal: document.getElementById('ped_sucursal').value,
                 direccion: document.getElementById('ped_direccion').value,
                 telefono: document.getElementById('ped_telefono').value,
@@ -218,54 +223,41 @@
                 total: document.getElementById('ped_total').value,
                 estado: document.getElementById('ped_estado').value,
                 vendedor: document.getElementById('ped_vendedor').value
-            };
-            enviarDatos(datos);
+            });
         }
 
         function guardarInsumo() {
-            const datos = {
+            enviarDatos({
                 accion: "guardar_insumo",
                 fecha: document.getElementById('ins_fecha').value,
                 insumo: document.getElementById('ins_nombre').value,
                 movimiento: document.getElementById('ins_movimiento').value,
                 cantidad: document.getElementById('ins_cantidad').value
-            };
-            enviarDatos(datos);
+            });
         }
 
         async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if(confirm(`¿Deseas generar la remisión y despachar este pedido?\nEsto descontará ${cantidad} unidades del inventario.`)) {
-                const datos = {
-                    accion: "despachar_pedido",
-                    fila: indexFila + 2,
-                    codigoEan: ean,
-                    cantidad: cantidad,
-                    producto: producto
-                };
-                await enviarDatos(datos);
+            if(confirm(`¿Generar remisión y despachar? Descontará ${cantidad} unidades.`)) {
+                await enviarDatos({ accion: "despachar_pedido", fila: indexFila + 2, codigoEan: ean, cantidad: cantidad, producto: producto });
             }
         }
 
-        // --- SOLUCIÓN ESCÁNER ---
         let html5QrCode = null;
         function iniciarEscanner() {
-            // Obligamos a la librería a enfocarse ÚNICAMENTE en códigos EAN 13
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader", {
-                    formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13 ]
-                });
-            }
-            // Ampliamos el área de detección (qrbox) para que sea un rectángulo horizontal
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 15, qrbox: { width: 300, height: 120 } }, 
-                (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, 
-                (err) => { /* Silenciar errores de búsqueda continua */ }
-            ).catch(err => alert("Por favor permite el uso de la cámara en tu navegador."));
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+            // Removida la restricción estricta de EAN_13 para permitir mayor compatibilidad de enfoque
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } }, 
+                (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, (err) => {}
+            ).catch(err => alert("Permite la cámara en tu navegador."));
         }
 
         function detenerEscanner() {
             if (html5QrCode) html5QrCode.stop().catch(err => {});
+        }
+
+        function ingresoManualEAN() {
+            let codigoManual = prompt("Ingresa el código EAN de barras manualmente:");
+            if(codigoManual) procesarCodigoEAN(codigoManual.trim());
         }
 
         function procesarCodigoEAN(codigo) {
@@ -275,61 +267,9 @@
                 if(movimiento === null) return;
                 let cantidad = prompt(`Cantidad:`, "1");
                 if(cantidad > 0) {
-                    enviarDatos({
-                        accion: "guardar_inventario",
-                        fecha: new Date().toLocaleDateString('es-CO'),
-                        codigoEan: codigo,
-                        producto: nombreProducto,
-                        movimiento: movimiento,
-                        cantidad: cantidad
-                    });
+                    enviarDatos({ accion: "guardar_inventario", fecha: new Date().toLocaleDateString('es-CO'), codigoEan: codigo, producto: nombreProducto, movimiento: movimiento, cantidad: cantidad });
                 }
-            } else { alert("Código EAN no registrado en la base de datos."); }
-        }
-
-        // --- SOLUCIÓN TABLAS ADMINISTRATIVAS ---
-        async function cargarDatosAdmin() {
-            try {
-                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
-                const data = await res.json();
-                
-                // 1. Tabla de Pedidos Completa
-                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V. Unitario</th><th>Total</th><th>Vendedor</th><th>Estado</th><th>Acción</th></tr>";
-                data.pedidos.forEach((p, idx) => {
-                    let estadoActual = p[13] || "ingresado";
-                    let botonAccion = (estadoActual !== "despachado" && estadoActual !== "entregado")
-                        ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[8]}', ${p[9]}, '${p[7]}')">Despachar</button>` 
-                        : "Completado";
-                    
-                    htmlPedidos += `<tr>
-                        <td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td>
-                        <td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td>
-                        <td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td>
-                        <td>${p[12]}</td><td><strong>${estadoActual}</strong></td><td>${botonAccion}</td>
-                    </tr>`;
-                });
-                htmlPedidos += "</table>";
-                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos;
-
-                // 2. Tabla de Inventario de Productos Terminados
-                let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN</th><th>Producto</th><th>Movimiento</th><th>Cantidad</th></tr>";
-                data.inventario.forEach(i => {
-                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td></tr>`;
-                });
-                htmlInv += "</table>";
-                document.getElementById('tabla-inventario-box').innerHTML = htmlInv;
-
-                // 3. Tabla de Insumos
-                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>Movimiento</th><th>Cantidad</th></tr>";
-                data.insumos.forEach(is => {
-                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`;
-                });
-                htmlIns += "</table>";
-                document.getElementById('tabla-insumos-box').innerHTML = htmlIns;
-
-            } catch(e) {
-                document.getElementById('tabla-pedidos-box').innerHTML = "Error al sincronizar datos.";
-            }
+            } else { alert("Código EAN " + codigo + " no registrado."); }
         }
     </script>
 </body>
