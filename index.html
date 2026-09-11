@@ -90,7 +90,7 @@
             color: white;
             border: none;
             padding: 0.8rem;
-            border-radius: 66px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 1rem;
@@ -182,15 +182,13 @@
             border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
-        
-        /* <!-- CORRECCIÓN 3.1 -->: Estilo para mostrar el nombre del producto escaneado */
-        #scan-nombre-display {
+        /* <!-- CAMBIO AQUÍ -->: Estilo para el feedback del escáner */
+        #scan_feedback {
             text-align: center;
             font-weight: bold;
             color: var(--primary);
-            margin: 0.5rem 0;
-            font-size: 1rem;
-            min-height: 1.2em; /* Mantiene espacio aunque esté vacío */
+            margin-bottom: 10px;
+            min-height: 1.2em; /* Mantiene el espacio aunque esté vacío */
         }
     </style>
 </head>
@@ -260,10 +258,6 @@
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
             <h3>Lector de Códigos (Inventario)</h3>
-            
-            <!-- <!-- CORRECCIÓN 3.2 -->: Elemento visual para mostrar el nombre encontrado -->
-            <p id="scan-nombre-display"></p>
-
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="scan_movimiento">
@@ -275,6 +269,9 @@
                 <label>Cantidad</label>
                 <input type="number" id="scan_cantidad" value="1" min="1">
             </div>
+
+            <!-- <!-- CAMBIO AQUÍ -->: Elemento para mostrar feedback del escáner -->
+            <p id="scan_feedback"></p>
 
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
@@ -293,7 +290,7 @@
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
             
-            <!-- <!-- CORRECCIÓN 1.1 -->: Convertido input simple a input con datalist dinámico -->
+            <!-- <!-- CAMBIO AQUÍ -->: input text convertido a datalist para dropdown dinámica -->
             <div class="form-group">
                 <label>Insumo</label>
                 <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
@@ -327,7 +324,7 @@
 
     <script>
         // Endpoint de Google Apps Script
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwtVphuNZJTQmkrZo8PUZm6P_IXriH7MQQWGat8cL62RNJVmUQ2aZxgv1E5u6156qoBrg/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxy3BLxSoZnhj3qC272LSypZO-qBWyv6gJMgzFI_K7lB__sAvlm66ftR8QhSH1X6njNnw/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
@@ -337,7 +334,7 @@
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
-            cargarDesplegableInsumos(); // <!-- CORRECCIÓN 1.2 -->: Cargar lista de insumos al iniciar
+            cargarInsumosFetch(); // <-- <!-- CAMBIO AQUÍ -->: Cargar insumos con fetch al iniciar
         }
 
         // Genera el código correlativo de pedido según fecha y hora
@@ -358,6 +355,10 @@
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
+            
+            // <!-- CAMBIO AQUÍ -->: Limpiar feedback al cambiar de pestaña
+            document.getElementById('scan_feedback').innerText = ""; 
+
             if (pestaña !== 'inventario') {
                 detenerEscanner();
             }
@@ -371,28 +372,14 @@
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
 
-        // <!-- CORRECCIÓN 1.3 -->: Nueva función para traer insumos del backend y llenar datalist
-        function cargarDesplegableInsumos() {
-            google.script.run
-                .withSuccessHandler(function(listaInsumos) {
-                    let options = "";
-                    listaInsumos.forEach(function(insumo) {
-                        options += `<option value="${insumo}">`;
-                    });
-                    document.getElementById('lista-insumos-datalist').innerHTML = options;
-                })
-                .withFailureHandler(function(err) {
-                    console.error("Error cargando insumos:", err);
-                })
-                .obtenerListaMaestraInsumos(); // Llama a la función en Código.gs
-        }
-
         // Petición a la base de datos Google Apps Script (doGet)
         async function cargarDatosBase() {
             try {
-                // <!-- CORRECCIÓN 2.1 -->: Añadido manejo de caché para asegurar datos frescos
+                // <!-- CAMBIO AQUÍ -->: Añadido manejo de caché para asegurar datos frescos
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
-                const data = await res.json();
+                const data = res.ok ? await res.json() : null; // Manejo básico si falla fetch
+
+                if (!data) return; 
                 
                 // 1. Carga de Clientes
                 baseDatosClientes = data.clientes || [];
@@ -404,7 +391,7 @@
                 });
                 document.getElementById('lista-clientes').innerHTML = dataCli;
 
-                // 2. Carga de Productos (Estructura Sheets: 0:id, 1:nombre, 2:desc, 3:precio, 4:unidad)
+                // 2. Carga de Productos
                 baseDatosProductos = data.productos || [];
                 let dataProd = "";
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
@@ -436,22 +423,20 @@
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-                // 4. Renderizado Tabla Inventario Admin (CORREGIDA ESTRUCTURA)
+                // 4. Renderizado Tabla Inventario Admin
                 // Basado en hoja 'Inventario': 0:Fecha, 1:EAN, 2:Producto, 3:Mov, 4:Cant
                 let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
                 const listaInventario = data.inventario || [];
                 listaInventario.forEach(i => {
-                    // <!-- CORRECCIÓN 2.2 -->: Ajustados índices para que coincidan con la pestaña Sheets (PT)
                     htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td><strong>${i[4]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
-                // 5. Renderizado Tabla Insumos Admin (CORREGIDA ESTRUCTURA)
+                // 5. Renderizado Tabla Insumos Admin
                 // Basado en hoja 'Insumos': 0:Fecha, 1:Insumo, 2:Mov, 3:Cant
                 let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
-                const listaInsumos = data.insumos || [];
-                listaInsumos.forEach(is => {
-                    // <!-- CORRECCIÓN 2.3 -->: Ajustados índices (tenías 5 columnas, la hoja real tiene 4)
+                const listaInsumosPage = data.insumos || [];
+                listaInsumosPage.forEach(is => {
                     htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td><strong>${is[3]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
@@ -498,7 +483,7 @@
         function actualizarFilaProducto(inputElement) {
             const row = inputElement.closest('.product-row');
             const nombreProd = inputElement.value;
-            // Estructura Sheets: 0:id(EAN), 1:nombre, 3:precio_unitario
+            // Estructura Sheets 'Productos': 0:id(EAN), 1:nombre, 3:precio_unitario
             const prod = baseDatosProductos.find(x => x[1] === nombreProd);
             if (prod) {
                 row.querySelector('.row-ean').value = prod[0] || "";
@@ -535,7 +520,7 @@
         // Envío asíncrono POST al backend (doPost)
         async function enviarDatos(datos) {
             try {
-                // <!-- CORRECCIÓN 2.4 -->: El modo 'no-cors' no permite leer la respuesta,
+                // El modo 'no-cors' no permite leer la respuesta,
                 // pero dado que es una Web App de GAS, es necesario para evitar errores de redirección Cross-Origin
                 // si no se maneja explícitamente el Output en GAS. Asumiremos éxito si no hay error de red.
                 await fetch(URL_GOOGLE_SCRIPT, { 
@@ -553,7 +538,6 @@
                     document.getElementById('contenedor-productos').innerHTML = "";
                     agregarFilaProducto();
                     document.getElementById('ped_cliente').value = "";
-                    // Limpar otros campos...
                 } else if (datos.accion === "guardar_insumo") {
                     document.getElementById('ins_nombre').value = "";
                     document.getElementById('ins_cantidad').value = "";
@@ -623,7 +607,7 @@
         async function despacharPedido(indexFila, ean, cantidad, producto) {
             if (confirm(`¿Deseas despachar este pedido?\nN° Pedido: ${document.getElementById('tabla-pedidos-box').rows[indexFila+1].cells[0].innerText}\nSe descontará PT y se abrirá el PDF.`)) {
                 
-                // 1. Enviar orden de despacho al backend (PT y Consumos)
+                // Enviar orden de despacho al backend (PT y Consumos)
                 enviarDatos({ 
                     accion: "despachar_pedido", 
                     fila: indexFila + 2, // +2 por cabecera y base 0 
@@ -632,11 +616,7 @@
                     producto: producto 
                 });
 
-                // <!-- CORRECCIÓN 2.5 -->: El PDF y la apertura se manejan en Código.gs (crearPdfRemisionEnDrive)
-                // y se devuelven en la respuesta JSON del POST. 
-                // Dado que fetch está en 'no-cors', no podemos leer esa URL aquí.
-                // Recomiendo cambiar enviarDatos a google.script.run para mejor manejo de respuestas.
-                // Por ahora, alertamos al usuario.
+                // El PDF se genera en el backend. 
                 alert("Procesando despacho. La remisión se guardará en Drive.");
             }
         }
@@ -647,18 +627,20 @@
                 html5QrCode = new Html5Qrcode("reader");
             }
             // Limpiar display de nombre anterior
-            document.getElementById('scan-nombre-display').innerText = "";
-
+            document.getElementById('scan_feedback').innerText = ""; 
+            
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 { fps: 10, qrbox: { width: 250, height: 150 } } // Ajustado qrbox para códigos de barras
-            , 
-                (codigo) => { 
-                    detenerEscanner(); 
-                    procesarCodigoEAN(codigo); 
-                }, 
-                () => {} // Error silencioso durante el escaneo
-            ).catch(() => alert("Permite el uso de la cámara en el navegador."));
+            ).then(() => {
+                // Éxito al iniciar
+            }).catch(() => alert("Permite el uso de la cámara en el navegador."));
+            
+            // Re-vincular el handler de éxito
+            html5QrCode.wl.onSuccess = (codigo) => {
+                detenerEscanner(); 
+                procesarCodigoEAN(codigo);
+            };
         }
 
         function detenerEscanner() { 
@@ -685,8 +667,8 @@
             if (producto) {
                 const nombreProducto = producto[1];
                 
-                // <!-- CORRECCIÓN 3.3 -->: Escribir el nombre en el elemento visual
-                document.getElementById('scan-nombre-display').innerText = "Producto Detectado:\n" + nombreProducto;
+                // <!-- CAMBIO AQUÍ -->: Escribir el nombre en el elemento visual
+                document.getElementById('scan_feedback').innerText = "Producto Detectado:\n" + nombreProducto;
 
                 let movimiento = document.getElementById('scan_movimiento').value;
                 let cantidad = document.getElementById('scan_cantidad').value;
@@ -706,8 +688,34 @@
                 }
             } else { 
                 alert("Código EAN no encontrado en la base de productos (" + codigo + ")."); 
-                document.getElementById('scan-nombre-display').innerText = "";
+                document.getElementById('scan_feedback').innerText = "";
             }
+        }
+
+        // <!-- CORRECCIÓN 1.3 -->: Nueva función para traer insumos del backend usando FETCH
+        function cargarInsumosFetch() {
+            // Asumimos que URL_GOOGLE_SCRIPT está bien definida arriba
+            fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
+                .then(res => {
+                    if (!res.ok) throw new Error('Error en la red');
+                    return res.json();
+                })
+                .then(listaInsumos => {
+                    let datalist = document.getElementById('lista-insumos-datalist');
+                    let options = "";
+                    if (listaInsumos && listaInsumos.length > 0) {
+                        listaInsumos.forEach(function(insumo) {
+                            options += `<option value="${insumo}">`;
+                        });
+                    } else {
+                        options = "<option value='No se encontraron insumos'>";
+                    }
+                    datalist.innerHTML = options;
+                })
+                .catch(e => {
+                    console.error("Error cargando datalist insumos con fetch:", e);
+                    document.getElementById('lista-insumos-datalist').innerHTML = "<option value='Error al cargar insumos'>";
+                });
         }
     </script>
 </body>
