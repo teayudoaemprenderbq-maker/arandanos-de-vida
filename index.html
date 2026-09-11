@@ -182,13 +182,12 @@
             border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
-        /* <!-- CAMBIO AQUÍ -->: Estilo para el feedback del escáner */
         #scan_feedback {
             text-align: center;
             font-weight: bold;
             color: var(--primary);
             margin-bottom: 10px;
-            min-height: 1.2em; /* Mantiene el espacio aunque esté vacío */
+            min-height: 1.2em;
         }
     </style>
 </head>
@@ -270,7 +269,6 @@
                 <input type="number" id="scan_cantidad" value="1" min="1">
             </div>
 
-            <!-- <!-- CAMBIO AQUÍ -->: Elemento para mostrar feedback del escáner -->
             <p id="scan_feedback"></p>
 
             <div id="reader"></div>
@@ -290,7 +288,6 @@
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
             
-            <!-- <!-- CAMBIO AQUÍ -->: input text convertido a datalist para dropdown dinámica -->
             <div class="form-group">
                 <label>Insumo</label>
                 <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
@@ -334,7 +331,7 @@
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
-            cargarInsumosFetch(); // <-- <!-- CAMBIO AQUÍ -->: Cargar insumos con fetch al iniciar
+            cargarInsumosFetch(); 
         }
 
         // Genera el código correlativo de pedido según fecha y hora
@@ -356,7 +353,6 @@
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
             
-            // <!-- CAMBIO AQUÍ -->: Limpiar feedback al cambiar de pestaña
             document.getElementById('scan_feedback').innerText = ""; 
 
             if (pestaña !== 'inventario') {
@@ -375,9 +371,8 @@
         // Petición a la base de datos Google Apps Script (doGet)
         async function cargarDatosBase() {
             try {
-                // <!-- CAMBIO AQUÍ -->: Añadido manejo de caché para asegurar datos frescos
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
-                const data = res.ok ? await res.json() : null; // Manejo básico si falla fetch
+                const data = res.ok ? await res.json() : null; 
 
                 if (!data) return; 
                 
@@ -397,16 +392,13 @@
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
                 baseDatosProductos.forEach(prod => { 
                     if (prod && prod[1]) {
-                        // Datalist usa Nombre
                         dataProd += `<option value="${prod[1]}">`; 
-                        // Selector manual usa EAN (prod[0]) como valor, muestra Nombre (prod[1])
                         selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
                     }
                 });
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
 
-                // Insertar fila inicial de producto si no existe
                 if (document.getElementById('contenedor-productos').children.length === 0) {
                     agregarFilaProducto();
                 }
@@ -424,7 +416,6 @@
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
                 // 4. Renderizado Tabla Inventario Admin
-                // Basado en hoja 'Inventario': 0:Fecha, 1:EAN, 2:Producto, 3:Mov, 4:Cant
                 let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
                 const listaInventario = data.inventario || [];
                 listaInventario.forEach(i => {
@@ -433,7 +424,6 @@
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
                 // 5. Renderizado Tabla Insumos Admin
-                // Basado en hoja 'Insumos': 0:Fecha, 1:Insumo, 2:Mov, 3:Cant
                 let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
                 const listaInsumosPage = data.insumos || [];
                 listaInsumosPage.forEach(is => {
@@ -446,7 +436,6 @@
             }
         }
 
-        // Agregar fila para múltiples productos en Pedidos
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
@@ -479,11 +468,9 @@
             contenedor.appendChild(div);
         }
 
-        // Al seleccionar producto en Pedidos, autocompletar EAN y Precio
         function actualizarFilaProducto(inputElement) {
             const row = inputElement.closest('.product-row');
             const nombreProd = inputElement.value;
-            // Estructura Sheets 'Productos': 0:id(EAN), 1:nombre, 3:precio_unitario
             const prod = baseDatosProductos.find(x => x[1] === nombreProd);
             if (prod) {
                 row.querySelector('.row-ean').value = prod[0] || "";
@@ -520,9 +507,6 @@
         // Envío asíncrono POST al backend (doPost)
         async function enviarDatos(datos) {
             try {
-                // El modo 'no-cors' no permite leer la respuesta,
-                // pero dado que es una Web App de GAS, es necesario para evitar errores de redirección Cross-Origin
-                // si no se maneja explícitamente el Output en GAS. Asumiremos éxito si no hay error de red.
                 await fetch(URL_GOOGLE_SCRIPT, { 
                     method: 'POST', 
                     mode: 'no-cors', 
@@ -532,7 +516,6 @@
                 
                 alert("Operación completada. Verifique los cambios en unos segundos.");
                 
-                // Limpieza y recarga (con ligero delay para dar tiempo a PT de GAS)
                 if (datos.accion === "guardar_pedido") {
                     generarNumeroPedido();
                     document.getElementById('contenedor-productos').innerHTML = "";
@@ -543,7 +526,7 @@
                     document.getElementById('ins_cantidad').value = "";
                 }
                 
-                setTimeout(cargarDatosBase, 1500); // Recargar tablas Admin tras breve espera
+                setTimeout(cargarDatosBase, 1500); 
 
             } catch (error) { 
                 console.error("Error en enviarDatos:", error);
@@ -604,43 +587,76 @@
             });
         }
 
+        // =============================================================================
+        // <!-- CORRECCIÓN -->: despacharPedido simplificada
+        // =============================================================================
+        /**
+         * Maneja la acción de despachar un pedido desde la tabla Admin.
+         * <!-- EXPLICACIÓN -->: No intenta leer datos complejos de la tabla visual
+         * para evitar el error 'Cannot read properties of undefined'.
+         * Simplemente confirma la acción y envía el índice al servidor.
+         */
         async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if (confirm(`¿Deseas despachar este pedido?\nN° Pedido: ${document.getElementById('tabla-pedidos-box').rows[indexFila+1].cells[0].innerText}\nSe descontará PT y se abrirá el PDF.`)) {
-                
-                // Enviar orden de despacho al backend (PT y Consumos)
-                enviarDatos({ 
+            // Simplificamos la confirmación para evitar buscar datos en la tabla visual
+            var mensajeConfirmacion = "¿Deseas despachar este pedido?\n" +
+                                      "Se registrará la salida del producto y de sus insumos en las hojas de Sheets, " +
+                                      "y se generará la remisión en PDF en tu Drive.";
+            
+            if (confirm(mensajeConfirmacion)) {
+                // Enviamos la orden de despacho al servidor (backend)
+                await enviarDatos({ 
                     accion: "despachar_pedido", 
-                    fila: indexFila + 2, // +2 por cabecera y base 0 
+                    // +2 por cabecera y base 0 para que coincida con la fila física en Sheets
+                    fila: indexFila + 2, 
                     codigoEan: ean, 
                     cantidad: cantidad, 
                     producto: producto 
                 });
 
-                // El PDF se genera en el backend. 
+                // Informamos al usuario
                 alert("Procesando despacho. La remisión se guardará en Drive.");
             }
         }
 
-        // Lector QR y código de barras
+        // =============================================================================
+        // <!-- CORRECCIÓN -->: iniciarEscanner más robusta
+        // =============================================================================
+        /**
+         * Activa la cámara para escanear códigos de barras.
+         * <!-- EXPLICACIÓN -->: Configuración estándar y manejo de errores limpio
+         * para asegurar que el lector se active.
+         */
         function iniciarEscanner() {
             if (!html5QrCode) {
+                // Creamos el objeto del lector una sola vez
                 html5QrCode = new Html5Qrcode("reader");
             }
-            // Limpiar display de nombre anterior
+            // Limpiar feedback anterior
             document.getElementById('scan_feedback').innerText = ""; 
             
+            // Configuramos e iniciamos el lector
             html5QrCode.start(
+                // facinMode: "environment" intenta usar la cámara trasera
                 { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 150 } } // Ajustado qrbox para códigos de barras
+                { 
+                    fps: 10,    // Marcos por segundo para el escaneo
+                    // qrbox define el área de escaneo. Ajustado para códigos de barras largos.
+                    qrbox: { width: 300, height: 150 } 
+                },
+                // Si el escaneo es exitoso, detenemos cámara y procesamos el código
+                (codigo) => { 
+                    detenerEscanner(); 
+                    procesarCodigoEAN(codigo); 
+                }, 
+                // Error silencioso durante el escaneo para no molestar
+                () => {} 
             ).then(() => {
-                // Éxito al iniciar
-            }).catch(() => alert("Permite el uso de la cámara en el navegador."));
-            
-            // Re-vincular el handler de éxito
-            html5QrCode.wl.onSuccess = (codigo) => {
-                detenerEscanner(); 
-                procesarCodigoEAN(codigo);
-            };
+                // Feedback visual si se desea al iniciar la cámara con éxito
+            }).catch((err) => {
+                // Si falla, avisamos al usuario sobre los permisos
+                console.error("Error al iniciar el escáner:", err);
+                alert("No se pudo activar la cámara. Por favor, asegúrate de dar permisos de cámara al navegador.");
+            });
         }
 
         function detenerEscanner() { 
@@ -658,16 +674,12 @@
             }
         }
 
-        // Procesar código leído (PT): Autocompletar nombre y enviar
         function procesarCodigoEAN(codigo) {
-            // Estructura Sheets 'Productos': 0:id(EAN), 1:nombre
-            // Buscamos usando el EAN que llega (codigo)
             const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
             
             if (producto) {
                 const nombreProducto = producto[1];
                 
-                // <!-- CAMBIO AQUÍ -->: Escribir el nombre en el elemento visual
                 document.getElementById('scan_feedback').innerText = "Producto Detectado:\n" + nombreProducto;
 
                 let movimiento = document.getElementById('scan_movimiento').value;
@@ -692,9 +704,7 @@
             }
         }
 
-        // <!-- CORRECCIÓN 1.3 -->: Nueva función para traer insumos del backend usando FETCH
         function cargarInsumosFetch() {
-            // Asumimos que URL_GOOGLE_SCRIPT está bien definida arriba
             fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
                 .then(res => {
                     if (!res.ok) throw new Error('Error en la red');
