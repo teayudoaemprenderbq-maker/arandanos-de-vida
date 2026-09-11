@@ -217,24 +217,30 @@
                     agregarFilaProducto();
                 }
 
-                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
-                data.pedidos.forEach((p, idx) => {
-                    let est = p[14] || "ingresado";
-                    let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` : "Completado";
-                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
-                });
-                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+                // Blindamos cada iteración para que si el dato no existe, use un arreglo vacío [] y no falle
+            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
+            
+            const listaPedidos = data.pedidos || [];
+            listaPedidos.forEach((p, idx) => {
+                let est = p[14] || "ingresado";
+                let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` : "Completado";
+                htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
+            });
+            document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
-                data.inventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td><strong>${i[5]}</strong></td></tr>`);
-                document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+            let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+            const listaInventario = data.inventario || [];
+            listaInventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td><strong>${i[5]}</strong></td></tr>`);
+            document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
-                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
-                data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`);
-                document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-            } catch(e) { console.error("Error al cargar datos", e); }
+            let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+            const listaInsumos = data.insumos || [];
+            listaInsumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`);
+            document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+
+        } catch(e) { 
+            console.error("Error al cargar datos", e); 
         }
-
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
