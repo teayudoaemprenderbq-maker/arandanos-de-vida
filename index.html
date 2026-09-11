@@ -35,7 +35,7 @@
         .manual-entry { display: flex; gap: 0.5rem; margin-top: 10px; }
     </style>
 </head>
-<body onload="cargarDatosBase()">
+<body onload="inicializarApp()">
 
     <header><h2>Arándanos de Vida</h2></header>
     
@@ -50,7 +50,7 @@
         <!-- PESTAÑA PEDIDOS -->
         <section id="sec-pedidos" class="card">
             <h3>Nuevo Pedido</h3>
-            <div class="form-group"><label>Fecha</label><input type="date" id="ped_fecha"></div>
+            <div class="form-group"><label>N° Pedido (Automático)</label><input type="text" id="ped_nro" readonly style="background:#f1f5f9;"></div>
             
             <div class="form-group">
                 <label>Nombre Cliente</label>
@@ -87,6 +87,13 @@
                 </select>
             </div>
             <div class="form-group"><label>Vendedor</label><input type="text" id="ped_vendedor"></div>
+            <div class="form-group">
+                <label>Tipo Pedido</label>
+                <select id="ped_tipopedido">
+                    <option value="Pedido en Firme">Pedido en Firme</option>
+                    <option value="Consignación">Consignación</option>
+                </select>
+            </div>
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido</button>
         </section>
 
@@ -109,7 +116,6 @@
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
-            <div class="form-group"><label>Fecha</label><input type="date" id="ins_fecha"></div>
             <div class="form-group"><label>Insumo</label><input type="text" id="ins_nombre"></div>
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
@@ -135,10 +141,26 @@
     </main>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxSnV_q-ztIGgynE-zPQUW7rgYpkPRJ0N49mFrZFhKrRRLRArKBCJeu-7PL9O18Snjvew/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwNiBkltTjJB2IB7LMchQD9H7aOQRdf-8_ACyr9HMm-GEzedcWUzG4HG4CsDqbhWjJLzQ/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
+
+        function inicializarApp() {
+            generarNumeroPedido();
+            cargarDatosBase();
+        }
+
+        function generarNumeroPedido() {
+            const ahora = new Date();
+            const anio = ahora.getFullYear();
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const hora = String(ahora.getHours()).padStart(2, '0');
+            const min = String(ahora.getMinutes()).padStart(2, '0');
+            const seg = String(ahora.getSeconds()).padStart(2, '0');
+            document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
+        }
 
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
@@ -160,39 +182,36 @@
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
                 const data = await res.json();
                 
-                // Clientes (Estructura: Nombre[0], Identificación[1], Dirección[2], Teléfono[3], Correo[4], Ciudad[5])
                 baseDatosClientes = data.clientes;
                 let dataCli = "";
                 baseDatosClientes.forEach(cli => { if(cli[0]) dataCli += `<option value="${cli[0]}">`; });
                 document.getElementById('lista-clientes').innerHTML = dataCli;
 
-                // Productos (Estructura: ID/EAN[0], Nombre[1], Descripción[2], Precio[3], Unidad[4])
                 baseDatosProductos = data.productos;
                 let dataProd = "";
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
                 baseDatosProductos.forEach(prod => { 
                     if(prod[1]) {
-                        dataProd += `<option value="${prod[1]}">`; // Nombre para autocompletar
-                        selectManual += `<option value="${prod[0]}">${prod[1]}</option>`; // ID/EAN como valor
+                        dataProd += `<option value="${prod[1]}">`; 
+                        selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
                     }
                 });
                 document.getElementById('lista-productos').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
 
-                // Tablas de Administración
-                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Acción</th></tr>";
+                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
                 data.pedidos.forEach((p, idx) => {
-                    let est = p[13] || "ingresado";
-                    let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[9]}', ${p[10]}, '${p[8]}')">Despachar</button>` : "Completado";
-                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td><strong>${est}</strong></td><td>${btn}</td></tr>`;
+                    let est = p[14] || "ingresado";
+                    let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` : "Completado";
+                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-                let htmlInv = "<table><tr><th>Fecha</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
+                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
                 data.inventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td></tr>`);
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
-                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
+                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
                 data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`);
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
             } catch(e) { console.error("Error al cargar datos", e); }
@@ -214,8 +233,8 @@
             let nombreProd = document.getElementById('ped_producto').value;
             let prod = baseDatosProductos.find(x => x[1] === nombreProd);
             if(prod) {
-                document.getElementById('ped_ean').value = prod[0] || ""; // ID/EAN
-                document.getElementById('ped_vunitario').value = prod[3] || 0; // Precio Unitario
+                document.getElementById('ped_ean').value = prod[0] || "";
+                document.getElementById('ped_vunitario').value = prod[3] || 0;
                 calcularTotal();
             }
         }
@@ -230,14 +249,17 @@
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
                 alert("Operación completada con éxito.");
+                generarNumeroPedido();
                 cargarDatosBase();
             } catch (error) { alert("Error en la petición: " + error); }
         }
 
         function guardarPedido() {
+            const fechaHoraActual = new Date().toLocaleString('es-CO');
             enviarDatos({
                 accion: "guardar_pedido",
-                fecha: document.getElementById('ped_fecha').value,
+                numeroPedido: document.getElementById('ped_nro').value,
+                fechaHora: fechaHoraActual,
                 nombreCliente: document.getElementById('ped_cliente').value,
                 identificacion: document.getElementById('ped_identificacion').value,
                 sucursal: document.getElementById('ped_sucursal').value,
@@ -251,14 +273,16 @@
                 valorUnitario: document.getElementById('ped_vunitario').value,
                 total: document.getElementById('ped_total').value,
                 estado: document.getElementById('ped_estado').value,
-                vendedor: document.getElementById('ped_vendedor').value
+                vendedor: document.getElementById('ped_vendedor').value,
+                tipoPedido: document.getElementById('ped_tipopedido').value
             });
         }
 
         function guardarInsumo() {
+            const fechaHoraActual = new Date().toLocaleString('es-CO');
             enviarDatos({ 
                 accion: "guardar_insumo", 
-                fecha: document.getElementById('ins_fecha').value, 
+                fechaHora: fechaHoraActual, 
                 insumo: document.getElementById('ins_nombre').value, 
                 movimiento: document.getElementById('ins_movimiento').value, 
                 cantidad: document.getElementById('ins_cantidad').value 
@@ -293,9 +317,10 @@
                 if(movimiento) {
                     let cantidad = prompt(`Cantidad:`, "1");
                     if(cantidad > 0) {
+                        const fechaHoraActual = new Date().toLocaleString('es-CO');
                         enviarDatos({ 
                             accion: "guardar_inventario", 
-                            fecha: new Date().toLocaleDateString('es-CO'), 
+                            fechaHora: fechaHoraActual, 
                             codigoEan: codigo, 
                             producto: producto[1], 
                             movimiento: movimiento, 
