@@ -674,36 +674,70 @@
             }
         }
 
-        function procesarCodigoEAN(codigo) {
-            const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
+        // =============================================================================
+// <!-- CORRECCIÓN -->: procesarCodigoEAN con REGISTRO AUTOMÁTICO
+// =============================================================================
+/**
+ * Procesa el código EAN leído por el escáner o ingresado manualmente.
+ * <!-- EXPLICACIÓN -->: Ahora, tras encontrar el producto, procede a
+ * registrar automáticamente el movimiento en la base de datos sin necesidad
+ * de pulsar botones adicionales.
+ */
+function procesarCodigoEAN(codigo) {
+    // Buscamos el producto en la base de datos local (ya cargada)
+    // Estructura asumida: Col 0 = EAN, Col 1 = Nombre
+    const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
+    
+    // Obtenemos el elemento donde mostramos feedback visual
+    let feedback = document.getElementById('scan_feedback');
+
+    if (producto) {
+        const nombreProducto = producto[1];
+        
+        // 1. Mostramos feedback visual inmediato al usuario
+        feedback.innerText = "Producto Detectado:\n" + nombreProducto;
+        feedback.style.color = "var(--primary)"; // Color morado de éxito
+
+        // 2. Obtenemos los valores actuales de movimiento y cantidad
+        let movimiento = document.getElementById('scan_movimiento').value;
+        let cantidad = document.getElementById('scan_cantidad').value;
+        
+        // 3. Validamos que la cantidad sea lógica
+        if (cantidad > 0) {
+            // Creamos la fecha y hora actual para el registro
+            const fechaHoraActual = new Date().toLocaleString('es-CO');
             
-            if (producto) {
-                const nombreProducto = producto[1];
-                
-                document.getElementById('scan_feedback').innerText = "Producto Detectado:\n" + nombreProducto;
+            // -----------------------------------------------------------------
+            // <!-- REGISTRO AUTOMÁTICO -->: Llamamos directamente a enviarDatos
+            // -----------------------------------------------------------------
+            console.log("Registrando automáticamente:", nombreProducto, movimiento, cantidad);
+            
+            // Opcional: Cambiar texto del feedback para indicar que se está registrando
+            feedback.innerText = "Registrando " + cantidad + " unid. de " + nombreProducto + "...";
 
-                let movimiento = document.getElementById('scan_movimiento').value;
-                let cantidad = document.getElementById('scan_cantidad').value;
-                
-                if (cantidad > 0) {
-                    const fechaHoraActual = new Date().toLocaleString('es-CO');
-                    enviarDatos({ 
-                        accion: "guardar_inventario", 
-                        fechaHora: fechaHoraActual, 
-                        codigoEan: codigo, 
-                        producto: nombreProducto, 
-                        movimiento: movimiento, 
-                        cantidad: cantidad 
-                    });
-                } else {
-                    alert("Ingrese una cantidad válida.");
-                }
-            } else { 
-                alert("Código EAN no encontrado en la base de productos (" + codigo + ")."); 
-                document.getElementById('scan_feedback').innerText = "";
-            }
+            enviarDatos({ 
+                accion: "guardar_inventario", 
+                fechaHora: fechaHoraActual, 
+                codigoEan: codigo, 
+                producto: nombreProducto, // Usamos el nombre encontrado client-side
+                movimiento: movimiento, 
+                cantidad: cantidad 
+            });
+
+            // Opcional: Resetear cantidad a 1 para el siguiente escaneo
+            // document.getElementById('scan_cantidad').value = 1;
+
+        } else {
+            alert("Por favor, ingrese una cantidad válida mayor a 0 antes de escanear.");
+            feedback.innerText = ""; // Limpiar feedback si falla
         }
-
+    } else { 
+        // Si el EAN no existe en la pestaña 'Productos'
+        alert("Código EAN no encontrado en la base de productos (" + codigo + "). Por favor, verifique la pestaña 'Productos' en Sheets."); 
+        feedback.innerText = "Código no encontrado: " + codigo;
+        feedback.style.color = "red";
+    }
+}
         function cargarInsumosFetch() {
             fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
                 .then(res => {
