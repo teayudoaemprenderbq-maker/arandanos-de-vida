@@ -182,6 +182,14 @@
             border-radius: 6px;
             border: 1px solid #e2e8f0;
         }
+        /* CAMBIO AQUÍ: Estilo para el feedback del escáner */
+        #scan_feedback {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+            min-height: 1.2em; /* Mantiene el espacio aunque esté vacío */
+        }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -262,6 +270,9 @@
                 <input type="number" id="scan_cantidad" value="1" min="1">
             </div>
 
+            <!-- CAMBIO AQUÍ: Elemento para mostrar feedback del escáner -->
+            <p id="scan_feedback"></p>
+
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
@@ -278,7 +289,14 @@
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
-            <div class="form-group"><label>Insumo</label><input type="text" id="ins_nombre"></div>
+            
+            <!-- CAMBIO AQUÍ: input text convertido a datalist para dropdown -->
+            <div class="form-group">
+                <label>Insumo</label>
+                <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
+                <datalist id="lista-insumos-datalist"></datalist>
+            </div>
+
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="ins_movimiento"><option value="Entrada">Entrada</option><option value="Salida">Salida</option></select>
@@ -306,7 +324,7 @@
 
     <script>
         // Endpoint de Google Apps Script
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz_CNdPgL_-EhxtNMibtpC7aaFq9wx9tYlHOfi34yiz0vnf2GnbeXXQm3VLZB7auN_60A/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwtVphuNZJTQmkrZo8PUZm6P_IXriH7MQQWGat8cL62RNJVmUQ2aZxgv1E5u6156qoBrg/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
@@ -316,6 +334,7 @@
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
+            cargarInsumos(); // <-- CAMBIO AQUÍ: Cargar insumos al iniciar
         }
 
         // Genera el código correlativo de pedido según fecha y hora
@@ -336,6 +355,10 @@
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
+            
+            // CAMBIO AQUÍ: Limpiar feedback al cambiar de pestaña
+            document.getElementById('scan_feedback').innerText = ""; 
+
             if (pestaña !== 'inventario') {
                 detenerEscanner();
             }
@@ -353,7 +376,9 @@
         async function cargarDatosBase() {
             try {
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
-                const data = await res.json();
+                const data = res.ok ? await res.json() : null; // CAMBIO AQUÍ: Manejo básico si falla fetch
+
+                if (!data) return; 
                 
                 // 1. Carga de Clientes
                 baseDatosClientes = data.clientes || [];
@@ -405,8 +430,8 @@
 
                 // 5. Renderizado Tabla Insumos Admin
                 let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
-                const listaInsumos = data.insumos || [];
-                listaInsumos.forEach(is => {
+                const listaInsumosPage = data.insumos || [];
+                listaInsumosPage.forEach(is => {
                     htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
@@ -569,6 +594,9 @@
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("reader");
             }
+            // CAMBIO AQUÍ: Limpiar feedback al iniciar cámara
+            document.getElementById('scan_feedback').innerText = ""; 
+            
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 { fps: 10, qrbox: { width: 250, height: 100 } }, 
@@ -595,9 +623,20 @@
             }
         }
 
+        // -------------------------------------------------------------------------
+        // CORRECCIÓN: procesarCodigoEAN (Muestra nombre client-side e informa)
+        // -------------------------------------------------------------------------
         function procesarCodigoEAN(codigo) {
-            let producto = baseDatosProductos.find(x => x[0] == codigo);
+            // Asumimos: baseDatosProductos ya cargada client-side en cargarDatosBase()
+            // Estructura asumida: Col 0 = id(EAN), Col 1 = nombre
+            let producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
+            
+            let feedback = document.getElementById('scan_feedback');
+
             if (producto) {
+                // CAMBIO AQUÍ: Actualizar feedback visual con el nombre encontrado
+                feedback.innerText = "Producto: " + producto[1];
+
                 let movimiento = document.getElementById('scan_movimiento').value;
                 let cantidad = document.getElementById('scan_cantidad').value;
                 
@@ -607,17 +646,51 @@
                         accion: "guardar_inventario", 
                         fechaHora: fechaHoraActual, 
                         codigoEan: codigo, 
-                        producto: producto[1], 
+                        producto: producto[1], // Usamos el nombre encontrado
                         movimiento: movimiento, 
                         cantidad: cantidad 
                     });
                 } else {
                     alert("Ingrese una cantidad válida.");
+                    feedback.innerText = ""; // Limpiar si falla
                 }
             } else { 
                 alert("Código EAN no encontrado en la base de productos."); 
+                feedback.innerText = ""; // Limpiar si falla
             }
         }
+
+        // -------------------------------------------------------------------------
+        // ADICIÓN AQUÍ: Funciones paraDropdown Dinámico de Insumos (Llamada al Servidor)
+        // -------------------------------------------------------------------------
+        
+        /**
+         * Llama a la función del servidor para obtener la lista maestra.
+         */
+        function cargarInsumos() {
+            // Asumimos: URL_GOOGLE_SCRIPT ya definida arriba
+            fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
+                .then(res => res.ok ? res.json() : [])
+                .then(insumos => llenarDatalistInsumos(insumos))
+                .catch(e => console.error("Error cargando datalist insumos:", e));
+        }
+
+        /**
+         * Success Handler: Llena el datalist HTML con el array recibido.
+         */
+        function llenarDatalistInsumos(insumos) {
+            let datalist = document.getElementById('lista-insumos-datalist');
+            let options = "";
+            if (insumos && insumos.length > 0) {
+                insumos.forEach(insumo => {
+                    options += `<option value="${insumo}">`;
+                });
+            } else {
+                options = "<option value='No se encontraron insumos'>";
+            }
+            datalist.innerHTML = options;
+        }
+
     </script>
 </body>
 </html>
