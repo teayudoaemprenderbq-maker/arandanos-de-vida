@@ -675,39 +675,51 @@
         }
 
        function procesarCodigoEAN(codigo) {
+            // Buscamos el producto en tu base de datos
             const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
             
             if (producto) {
                 const nombreProducto = producto[1];
                 let movimiento = document.getElementById('scan_movimiento').value;
-                let cantidad = document.getElementById('scan_cantidad').value;
+                let cantidadOriginal = document.getElementById('scan_cantidad').value; // Normalmente es 1
                 
                 // Mostrar en pantalla qué producto se detectó
                 document.getElementById('scan_feedback').innerText = "Producto Detectado:\n" + nombreProducto;
 
-                if (cantidad > 0) {
-                    // --- NUEVO: Cuadro de confirmación ---
-                    let mensajeConfirmacion = `¿Deseas registrar ${cantidad} unidad(es) de "${nombreProducto}" como ${movimiento}?`;
-                    let usuarioConfirma = confirm(mensajeConfirmacion);
+                // --- NUEVO: Cuadro para pedir o modificar la cantidad (prompt) ---
+                let mensaje = `Se detectó: ${nombreProducto}\n¿Qué cantidad deseas registrar como ${movimiento}?`;
+                
+                // prompt muestra una cajita para escribir. Le pasamos cantidadOriginal como valor por defecto.
+                let entradaUsuario = prompt(mensaje, cantidadOriginal);
 
-                    if (usuarioConfirma) {
-                        // Si el usuario hace clic en "Aceptar", se envían los datos a la nube
+                // Si el usuario hace clic en "Cancelar", entradaUsuario será 'null'
+                if (entradaUsuario !== null) {
+                    
+                    // Convertimos lo que el usuario escribió a un número para evitar errores
+                    let cantidadFinal = parseFloat(entradaUsuario);
+
+                    // Verificamos que sea un número válido y mayor a 0
+                    if (cantidadFinal > 0) {
                         const fechaHoraActual = new Date().toLocaleString('es-CO');
+                        
+                        // Enviamos los datos con la NUEVA cantidad ingresada
                         enviarDatos({ 
                             accion: "guardar_inventario", 
                             fechaHora: fechaHoraActual, 
                             codigoEan: codigo, 
                             producto: nombreProducto, 
                             movimiento: movimiento, 
-                            cantidad: cantidad 
+                            cantidad: cantidadFinal 
                         });
-                        document.getElementById('scan_feedback').innerText = "Procesando registro...";
+                        document.getElementById('scan_feedback').innerText = `Procesando registro de ${cantidadFinal} unidad(es)...`;
                     } else {
-                        // Si el usuario hace clic en "Cancelar", abortamos la operación
-                        document.getElementById('scan_feedback').innerText = "❌ Registro cancelado por el usuario.";
+                        // Si escribió letras, un cero o un número negativo
+                        alert("Por favor, ingresa una cantidad válida mayor a 0.");
+                        document.getElementById('scan_feedback').innerText = "❌ Registro cancelado: cantidad inválida.";
                     }
                 } else {
-                    alert("Ingrese una cantidad válida.");
+                    // Si el usuario hizo clic en el botón "Cancelar" de la ventanita
+                    document.getElementById('scan_feedback').innerText = "❌ Registro cancelado por el usuario.";
                 }
             } else { 
                 alert("Código EAN no encontrado en la base de productos (" + codigo + ")."); 
