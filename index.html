@@ -192,36 +192,47 @@
 
         async function cargarDatosBase() {
     try {
-        console.log("Iniciando carga de datos desde Google Apps Script...");
+        document.getElementById('tabla-pedidos-box').innerHTML = "Cargando datos...";
         const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
-        const data = await res.json();
-        console.log("Datos recibidos:", data);
         
-        // 1. Cargar Clientes
-        baseDatosClientes = data.clientes || [];
-        let dataCli = "";
-        baseDatosClientes.forEach(cli => { 
-            if(cli && cli[0]) dataCli += `<option value="${cli[0]}">`; 
-        });
-        document.getElementById('lista-clientes').innerHTML = dataCli;
+        // Obtenemos el texto crudo para verificar si Google envía HTML en lugar de JSON
+        const textoCrudo = await res.text();
+        
+        try {
+            const data = JSON.parse(textoCrudo);
+            alert("Diagnóstico de Google:\nClientes: " + (data.clientes ? data.clientes.length : "Indefinido") + "\nProductos: " + (data.productos ? data.productos.length : "Indefinido"));
+            
+            // 1. Cargar Clientes
+            baseDatosClientes = data.clientes || [];
+            let dataCli = "";
+            baseDatosClientes.forEach(cli => { if(cli[0]) dataCli += `<option value="${cli[0]}">`; });
+            document.getElementById('lista-clientes').innerHTML = dataCli;
 
-        // 2. Cargar Productos
-        baseDatosProductos = data.productos || [];
-        let dataProd = "";
-        let selectManual = "<option value=''>Seleccione un producto...</option>";
-        baseDatosProductos.forEach(prod => { 
-            if(prod && prod[1]) {
-                dataProd += `<option value="${prod[1]}">`; 
-                selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
-            }
-        });
-        document.getElementById('lista-productos-datalist').innerHTML = dataProd;
-        document.getElementById('manual_prod_select').innerHTML = selectManual;
+            // 2. Cargar Productos
+            baseDatosProductos = data.productos || [];
+            let dataProd = "";
+            let selectManual = "<option value=''>Seleccione un producto...</option>";
+            baseDatosProductos.forEach(prod => { 
+                if(prod[1]) {
+                    dataProd += `<option value="${prod[1]}">`; 
+                    selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
+                }
+            });
+            document.getElementById('lista-productos-datalist').innerHTML = dataProd;
+            document.getElementById('manual_prod_select').innerHTML = selectManual;
 
-        if(document.getElementById('contenedor-productos').children.length === 0) {
-            agregarFilaProducto();
+            // 3. Tablas Admin (Ejemplo simplificado para validación)
+            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Cliente</th><th>Estado</th></tr>";
+            (data.pedidos || []).forEach(p => { htmlPedidos += `<tr><td>${p[0]}</td><td>${p[2]}</td><td>${p[14]}</td></tr>`; });
+            document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+
+        } catch (jsonError) {
+            alert("Error: Google no está enviando JSON. Está enviando:\n" + textoCrudo.substring(0, 150));
         }
-
+    } catch(e) { 
+        alert("Error de conexión: " + e.message); 
+    }
+}
         // 3. Cargar Tabla de Pedidos en Admin
         let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
         const listaPedidos = data.pedidos || [];
