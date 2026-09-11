@@ -154,7 +154,7 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzNDCnT2yMqkM_n9fc1l_j_ZEXYXnRzvjHer7K16EbkAbzR5zDk_QEC9oMKklHPlCipgw/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyIkNItH5ux1JPYq9yhwyFowooXrSAv8MY3WhA8YYxIcpGqNM7EVkjjbpxOT3r7cOfIfg/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
@@ -225,12 +225,12 @@
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
-                data.inventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td></tr>`);
+                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+                data.inventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td><strong>${i[5]}</strong></td></tr>`);
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
-                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
-                data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`);
+                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+                data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`);
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
             } catch(e) { console.error("Error al cargar datos", e); }
         }
