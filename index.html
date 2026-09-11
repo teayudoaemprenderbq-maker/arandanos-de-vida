@@ -32,9 +32,9 @@
         .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
         .admin-section { display: none; }
         .admin-section.active-sub { display: block; }
+        .manual-entry { display: flex; gap: 0.5rem; margin-top: 10px; }
     </style>
 </head>
-<!-- Se carga la base de datos de clientes y tablas al iniciar la aplicación -->
 <body onload="cargarDatosBase()">
 
     <header><h2>Arándanos de Vida</h2></header>
@@ -47,28 +47,35 @@
     </nav>
 
     <main>
+        <!-- PESTAÑA PEDIDOS -->
         <section id="sec-pedidos" class="card">
             <h3>Nuevo Pedido</h3>
             <div class="form-group"><label>Fecha</label><input type="date" id="ped_fecha"></div>
             
-            <!-- Campo Cliente con Datalist -->
             <div class="form-group">
                 <label>Nombre Cliente</label>
-                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Escribe o selecciona un cliente">
+                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente">
                 <datalist id="lista-clientes"></datalist>
             </div>
             
-            <div class="form-group"><label>Identificación (NIT/CC)</label><input type="text" id="ped_identificacion"></div>
-            <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
+            <div class="form-group"><label>Identificación</label><input type="text" id="ped_identificacion"></div>
             <div class="form-group"><label>Dirección</label><input type="text" id="ped_direccion"></div>
             <div class="form-group"><label>Teléfono</label><input type="tel" id="ped_telefono"></div>
-            <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
             <div class="form-group"><label>Correo</label><input type="email" id="ped_correo"></div>
-            <div class="form-group"><label>Producto</label><input type="text" id="ped_producto"></div>
-            <div class="form-group"><label>Código EAN 13</label><input type="text" id="ped_ean"></div>
-            <div class="form-group"><label>Cantidad</label><input type="number" id="ped_cantidad"></div>
-            <div class="form-group"><label>Valor Unitario</label><input type="number" id="ped_vunitario"></div>
-            <div class="form-group"><label>Total</label><input type="number" id="ped_total"></div>
+            <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
+            <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
+            
+            <div class="form-group">
+                <label>Producto</label>
+                <input list="lista-productos" id="ped_producto" onchange="autocompletarProducto()" placeholder="Selecciona un producto">
+                <datalist id="lista-productos"></datalist>
+            </div>
+            
+            <div class="form-group"><label>Código EAN 13</label><input type="text" id="ped_ean" readonly></div>
+            <div class="form-group"><label>Cantidad</label><input type="number" id="ped_cantidad" oninput="calcularTotal()"></div>
+            <div class="form-group"><label>Valor Unitario</label><input type="number" id="ped_vunitario" oninput="calcularTotal()"></div>
+            <div class="form-group"><label>Total</label><input type="number" id="ped_total" readonly></div>
+            
             <div class="form-group">
                 <label>Estado</label>
                 <select id="ped_estado">
@@ -83,25 +90,27 @@
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido</button>
         </section>
 
+        <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
-            <h3>Lector (Inventario)</h3>
+            <h3>Lector de Códigos (Inventario)</h3>
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
-            <button class="btn-submit" style="background: #eab308; margin-top:5px;" onclick="ingresoManualEAN()">Ingreso Manual EAN</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
+            
+            <div style="margin-top: 15px; border-top: 2px solid #e2e8f0; padding-top: 10px;">
+                <label>Ingreso Manual de Producto</label>
+                <div class="manual-entry">
+                    <select id="manual_prod_select"><option value="">Seleccione un producto...</option></select>
+                    <button class="btn-action" onclick="ingresoManualProducto()">Registrar</button>
+                </div>
+            </div>
         </section>
 
+        <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3>
             <div class="form-group"><label>Fecha</label><input type="date" id="ins_fecha"></div>
-            <div class="form-group">
-                <label>Insumo</label>
-                <select id="ins_nombre">
-                    <option value="Arándanos">Arándanos</option>
-                    <option value="Frasco">Frasco</option>
-                    <option value="Tapa">Tapa</option>
-                </select>
-            </div>
+            <div class="form-group"><label>Insumo</label><input type="text" id="ins_nombre"></div>
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="ins_movimiento"><option value="Entrada">Entrada</option><option value="Salida">Salida</option></select>
@@ -110,16 +119,15 @@
             <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
         </section>
 
+        <!-- PESTAÑA ADMIN -->
         <section id="sec-admin" class="card hidden">
             <h3>Panel Administrativo</h3>
             <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosBase()">Actualizar Datos de la Nube</button>
-            
             <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
             </div>
-
             <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
@@ -127,15 +135,10 @@
     </main>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyhubX9im0Vu1Xoukvjnzp4hYX9Ofilc_GAixb4eGE08PrhFPRk4UV7JWiV8gBpB1bWeQ/exec";
-
-        const catalogoProductos = {
-            "7709034887757": "Concentrado de Arándanos pequeño (130ml)",
-            "7709034887788": "Concentrado de Arándanos mediano (250ml)",
-            "7709034887726": "Concentrado de Arándanos grande (500ml)"
-        };
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxSnV_q-ztIGgynE-zPQUW7rgYpkPRJ0N49mFrZFhKrRRLRArKBCJeu-7PL9O18Snjvew/exec";
 
         let baseDatosClientes = [];
+        let baseDatosProductos = [];
 
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
@@ -157,20 +160,31 @@
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
                 const data = await res.json();
                 
-                // Cargar Clientes en Datalist
+                // Clientes (Estructura: Nombre[0], Identificación[1], Dirección[2], Teléfono[3], Correo[4], Ciudad[5])
                 baseDatosClientes = data.clientes;
-                let datalistHtml = "";
-                baseDatosClientes.forEach(cli => {
-                    if(cli[0]) datalistHtml += `<option value="${cli[0]}">`;
-                });
-                document.getElementById('lista-clientes').innerHTML = datalistHtml;
+                let dataCli = "";
+                baseDatosClientes.forEach(cli => { if(cli[0]) dataCli += `<option value="${cli[0]}">`; });
+                document.getElementById('lista-clientes').innerHTML = dataCli;
 
-                // Tablas Administrativas
-                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>Total</th><th>Estado</th><th>Acción</th></tr>";
+                // Productos (Estructura: ID/EAN[0], Nombre[1], Descripción[2], Precio[3], Unidad[4])
+                baseDatosProductos = data.productos;
+                let dataProd = "";
+                let selectManual = "<option value=''>Seleccione un producto...</option>";
+                baseDatosProductos.forEach(prod => { 
+                    if(prod[1]) {
+                        dataProd += `<option value="${prod[1]}">`; // Nombre para autocompletar
+                        selectManual += `<option value="${prod[0]}">${prod[1]}</option>`; // ID/EAN como valor
+                    }
+                });
+                document.getElementById('lista-productos').innerHTML = dataProd;
+                document.getElementById('manual_prod_select').innerHTML = selectManual;
+
+                // Tablas de Administración
+                let htmlPedidos = "<table><tr><th>Fecha</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Acción</th></tr>";
                 data.pedidos.forEach((p, idx) => {
                     let est = p[13] || "ingresado";
                     let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[9]}', ${p[10]}, '${p[8]}')">Despachar</button>` : "Completado";
-                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[12]}</td><td><strong>${est}</strong></td><td>${btn}</td></tr>`;
+                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td><strong>${est}</strong></td><td>${btn}</td></tr>`;
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
@@ -181,28 +195,43 @@
                 let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
                 data.insumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td></tr>`);
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-            } catch(e) { console.error("Error cargando base", e); }
+            } catch(e) { console.error("Error al cargar datos", e); }
         }
 
         function autocompletarCliente() {
-            let nombreBuscado = document.getElementById('ped_cliente').value;
-            let clienteEncontrado = baseDatosClientes.find(cli => cli[0] === nombreBuscado);
-            
-            if(clienteEncontrado) {
-                document.getElementById('ped_identificacion').value = clienteEncontrado[1] || "";
-                document.getElementById('ped_direccion').value = clienteEncontrado[2] || "";
-                document.getElementById('ped_telefono').value = clienteEncontrado[3] || "";
-                document.getElementById('ped_ciudad').value = clienteEncontrado[4] || "";
-                document.getElementById('ped_correo').value = clienteEncontrado[5] || "";
+            let nombre = document.getElementById('ped_cliente').value;
+            let c = baseDatosClientes.find(cli => cli[0] === nombre);
+            if(c) {
+                document.getElementById('ped_identificacion').value = c[1] || "";
+                document.getElementById('ped_direccion').value = c[2] || "";
+                document.getElementById('ped_telefono').value = c[3] || "";
+                document.getElementById('ped_correo').value = c[4] || "";
+                document.getElementById('ped_ciudad').value = c[5] || "";
             }
+        }
+
+        function autocompletarProducto() {
+            let nombreProd = document.getElementById('ped_producto').value;
+            let prod = baseDatosProductos.find(x => x[1] === nombreProd);
+            if(prod) {
+                document.getElementById('ped_ean').value = prod[0] || ""; // ID/EAN
+                document.getElementById('ped_vunitario').value = prod[3] || 0; // Precio Unitario
+                calcularTotal();
+            }
+        }
+
+        function calcularTotal() {
+            let cant = document.getElementById('ped_cantidad').value || 0;
+            let val = document.getElementById('ped_vunitario').value || 0;
+            document.getElementById('ped_total').value = (cant * val);
         }
 
         async function enviarDatos(datos) {
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
-                alert("Operación enviada con éxito.");
+                alert("Operación completada con éxito.");
                 cargarDatosBase();
-            } catch (error) { alert("Error: " + error); }
+            } catch (error) { alert("Error en la petición: " + error); }
         }
 
         function guardarPedido() {
@@ -227,17 +256,17 @@
         }
 
         function guardarInsumo() {
-            enviarDatos({
-                accion: "guardar_insumo",
-                fecha: document.getElementById('ins_fecha').value,
-                insumo: document.getElementById('ins_nombre').value,
-                movimiento: document.getElementById('ins_movimiento').value,
-                cantidad: document.getElementById('ins_cantidad').value
+            enviarDatos({ 
+                accion: "guardar_insumo", 
+                fecha: document.getElementById('ins_fecha').value, 
+                insumo: document.getElementById('ins_nombre').value, 
+                movimiento: document.getElementById('ins_movimiento').value, 
+                cantidad: document.getElementById('ins_cantidad').value 
             });
         }
 
         async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if(confirm(`¿Generar remisión y despachar? Descontará ${cantidad} unidades.`)) {
+            if(confirm(`¿Deseas despachar este pedido?\nSe descontará el producto y sus insumos asociados.`)) {
                 await enviarDatos({ accion: "despachar_pedido", fila: indexFila + 2, codigoEan: ean, cantidad: cantidad, producto: producto });
             }
         }
@@ -245,31 +274,36 @@
         let html5QrCode = null;
         function iniciarEscanner() {
             if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            // Removida la restricción estricta de EAN_13 para permitir mayor compatibilidad de enfoque
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } }, 
                 (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, (err) => {}
-            ).catch(err => alert("Permite la cámara en tu navegador."));
+            ).catch(err => alert("Permite el uso de la cámara en el navegador."));
         }
+        function detenerEscanner() { if (html5QrCode) html5QrCode.stop().catch(err => {}); }
 
-        function detenerEscanner() {
-            if (html5QrCode) html5QrCode.stop().catch(err => {});
-        }
-
-        function ingresoManualEAN() {
-            let codigoManual = prompt("Ingresa el código EAN de barras manualmente:");
-            if(codigoManual) procesarCodigoEAN(codigoManual.trim());
+        function ingresoManualProducto() {
+            let eanSeleccionado = document.getElementById('manual_prod_select').value;
+            if(eanSeleccionado) { procesarCodigoEAN(eanSeleccionado); } 
+            else { alert("Seleccione un producto del selector."); }
         }
 
         function procesarCodigoEAN(codigo) {
-            let nombreProducto = catalogoProductos[codigo];
-            if(nombreProducto) {
-                let movimiento = prompt(`Producto: ${nombreProducto}\nEscribe "Entrada" o "Salida":`, "Entrada");
-                if(movimiento === null) return;
-                let cantidad = prompt(`Cantidad:`, "1");
-                if(cantidad > 0) {
-                    enviarDatos({ accion: "guardar_inventario", fecha: new Date().toLocaleDateString('es-CO'), codigoEan: codigo, producto: nombreProducto, movimiento: movimiento, cantidad: cantidad });
+            let producto = baseDatosProductos.find(x => x[0] == codigo);
+            if(producto) {
+                let movimiento = prompt(`Producto: ${producto[1]}\nEscribe "Entrada" o "Salida":`, "Entrada");
+                if(movimiento) {
+                    let cantidad = prompt(`Cantidad:`, "1");
+                    if(cantidad > 0) {
+                        enviarDatos({ 
+                            accion: "guardar_inventario", 
+                            fecha: new Date().toLocaleDateString('es-CO'), 
+                            codigoEan: codigo, 
+                            producto: producto[1], 
+                            movimiento: movimiento, 
+                            cantidad: cantidad 
+                        });
+                    }
                 }
-            } else { alert("Código EAN " + codigo + " no registrado."); }
+            } else { alert("Código EAN no encontrado en la base de productos."); }
         }
     </script>
 </body>
