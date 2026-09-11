@@ -14,7 +14,7 @@
         nav { display: flex; background: #1e293b; overflow-x: auto; }
         nav button { flex: 1; padding: 0.8rem; background: none; border: none; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
         nav button.active { background: var(--primary-dark); }
-        main { max-width: 900px; margin: 0 auto; padding: 1rem; }
+        main { max-width: 950px; margin: 0 auto; padding: 1rem; }
         .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
         h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
         .form-group { margin-bottom: 1rem; }
@@ -22,6 +22,7 @@
         input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
         .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;}
+        .btn-danger { background: #dc2626; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;}
         #reader { width: 100%; max-width: 400px; margin: 0 auto 1rem auto; border-radius: 8px; overflow: hidden; background: #000; }
         .table-container { overflow-x: auto; max-height: 400px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; white-space: nowrap; }
@@ -32,7 +33,7 @@
         .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
         .admin-section { display: none; }
         .admin-section.active-sub { display: block; }
-        .manual-entry { display: flex; gap: 0.5rem; margin-top: 10px; }
+        .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -65,17 +66,15 @@
             <div class="form-group"><label>Ciudad</label><input type="text" id="ped_ciudad"></div>
             <div class="form-group"><label>Sucursal</label><input type="text" id="ped_sucursal"></div>
             
-            <div class="form-group">
-                <label>Producto</label>
-                <input list="lista-productos" id="ped_producto" onchange="autocompletarProducto()" placeholder="Selecciona un producto">
-                <datalist id="lista-productos"></datalist>
+            <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
+            <h4>Productos del Pedido</h4>
+            <div id="contenedor-productos" style="margin-top: 0.5rem;"></div>
+            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button>
+            <div style="margin-top: 1rem; text-align: right; font-weight: bold; font-size: 1rem;">
+                Gran Total: $<span id="gran_total">0</span>
             </div>
-            
-            <div class="form-group"><label>Código EAN 13</label><input type="text" id="ped_ean" readonly></div>
-            <div class="form-group"><label>Cantidad</label><input type="number" id="ped_cantidad" oninput="calcularTotal()"></div>
-            <div class="form-group"><label>Valor Unitario</label><input type="number" id="ped_vunitario" oninput="calcularTotal()"></div>
-            <div class="form-group"><label>Total</label><input type="number" id="ped_total" readonly></div>
-            
+            <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
+
             <div class="form-group">
                 <label>Estado</label>
                 <select id="ped_estado">
@@ -94,20 +93,32 @@
                     <option value="Consignación">Consignación</option>
                 </select>
             </div>
-            <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido</button>
+            <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
         </section>
 
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
             <h3>Lector de Códigos (Inventario)</h3>
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="scan_movimiento">
+                    <option value="Entrada">Entrada</option>
+                    <option value="Salida">Salida</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="scan_cantidad" value="1" min="1">
+            </div>
+
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
             
             <div style="margin-top: 15px; border-top: 2px solid #e2e8f0; padding-top: 10px;">
                 <label>Ingreso Manual de Producto</label>
-                <div class="manual-entry">
-                    <select id="manual_prod_select"><option value="">Seleccione un producto...</option></select>
+                <div style="display: flex; gap: 0.5rem; margin-top: 5px;">
+                    <select id="manual_prod_select" style="flex:1;"><option value="">Seleccione un producto...</option></select>
                     <button class="btn-action" onclick="ingresoManualProducto()">Registrar</button>
                 </div>
             </div>
@@ -140,8 +151,10 @@
         </section>
     </main>
 
+    <datalist id="lista-productos-datalist"></datalist>
+
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwNiBkltTjJB2IB7LMchQD9H7aOQRdf-8_ACyr9HMm-GEzedcWUzG4HG4CsDqbhWjJLzQ/exec";
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzNDCnT2yMqkM_n9fc1l_j_ZEXYXnRzvjHer7K16EbkAbzR5zDk_QEC9oMKklHPlCipgw/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
@@ -196,8 +209,13 @@
                         selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
                     }
                 });
-                document.getElementById('lista-productos').innerHTML = dataProd;
+                document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
+
+                // Si no hay filas de productos en el pedido, agregar la primera por defecto
+                if(document.getElementById('contenedor-productos').children.length === 0) {
+                    agregarFilaProducto();
+                }
 
                 let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
                 data.pedidos.forEach((p, idx) => {
@@ -217,6 +235,62 @@
             } catch(e) { console.error("Error al cargar datos", e); }
         }
 
+        function agregarFilaProducto() {
+            const contenedor = document.getElementById('contenedor-productos');
+            const div = document.createElement('div');
+            div.className = 'product-row';
+            div.innerHTML = `
+                <div>
+                    <label>Producto</label>
+                    <input list="lista-productos-datalist" class="row-prod" onchange="actualizarFilaProducto(this)" placeholder="Seleccione producto">
+                </div>
+                <div>
+                    <label>EAN</label>
+                    <input type="text" class="row-ean" readonly>
+                </div>
+                <div>
+                    <label>Cant</label>
+                    <input type="number" class="row-cant" value="1" min="1" oninput="calcularTotalesPedido()">
+                </div>
+                <div>
+                    <label>V. Unitario</label>
+                    <input type="number" class="row-vuni" oninput="calcularTotalesPedido()">
+                </div>
+                <div>
+                    <label>Subtotal</label>
+                    <input type="number" class="row-subtotal" readonly>
+                </div>
+                <div style="padding-bottom: 2px;">
+                    <button type="button" class="btn-danger" onclick="this.parentElement.parentElement.remove(); calcularTotalesPedido();">X</button>
+                </div>
+            `;
+            contenedor.appendChild(div);
+        }
+
+        function actualizarFilaProducto(inputElement) {
+            const row = inputElement.closest('.product-row');
+            const nombreProd = inputElement.value;
+            const prod = baseDatosProductos.find(x => x[1] === nombreProd);
+            if(prod) {
+                row.querySelector('.row-ean').value = prod[0] || "";
+                row.querySelector('.row-vuni').value = prod[3] || 0;
+                calcularTotalesPedido();
+            }
+        }
+
+        function calcularTotalesPedido() {
+            const filas = document.querySelectorAll('.product-row');
+            let granTotal = 0;
+            filas.forEach(row => {
+                const cant = parseFloat(row.querySelector('.row-cant').value) || 0;
+                const vuni = parseFloat(row.querySelector('.row-vuni').value) || 0;
+                const subtotal = cant * vuni;
+                row.querySelector('.row-subtotal').value = subtotal;
+                granTotal += subtotal;
+            });
+            document.getElementById('gran_total').innerText = granTotal;
+        }
+
         function autocompletarCliente() {
             let nombre = document.getElementById('ped_cliente').value;
             let c = baseDatosClientes.find(cli => cli[0] === nombre);
@@ -229,32 +303,35 @@
             }
         }
 
-        function autocompletarProducto() {
-            let nombreProd = document.getElementById('ped_producto').value;
-            let prod = baseDatosProductos.find(x => x[1] === nombreProd);
-            if(prod) {
-                document.getElementById('ped_ean').value = prod[0] || "";
-                document.getElementById('ped_vunitario').value = prod[3] || 0;
-                calcularTotal();
-            }
-        }
-
-        function calcularTotal() {
-            let cant = document.getElementById('ped_cantidad').value || 0;
-            let val = document.getElementById('ped_vunitario').value || 0;
-            document.getElementById('ped_total').value = (cant * val);
-        }
-
         async function enviarDatos(datos) {
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
                 alert("Operación completada con éxito.");
                 generarNumeroPedido();
+                document.getElementById('contenedor-productos').innerHTML = "";
+                agregarFilaProducto();
                 cargarDatosBase();
             } catch (error) { alert("Error en la petición: " + error); }
         }
 
         function guardarPedido() {
+            const filas = document.querySelectorAll('.product-row');
+            let productosArray = [];
+            filas.forEach(row => {
+                productosArray.push({
+                    producto: row.querySelector('.row-prod').value,
+                    codigoEan: row.querySelector('.row-ean').value,
+                    cantidad: row.querySelector('.row-cant').value,
+                    valorUnitario: row.querySelector('.row-vuni').value,
+                    total: row.querySelector('.row-subtotal').value
+                });
+            });
+
+            if(productosArray.length === 0 || !productosArray[0].producto) {
+                alert("Debe agregar al menos un producto al pedido.");
+                return;
+            }
+
             const fechaHoraActual = new Date().toLocaleString('es-CO');
             enviarDatos({
                 accion: "guardar_pedido",
@@ -267,14 +344,10 @@
                 telefono: document.getElementById('ped_telefono').value,
                 ciudad: document.getElementById('ped_ciudad').value,
                 correo: document.getElementById('ped_correo').value,
-                producto: document.getElementById('ped_producto').value,
-                codigoEan: document.getElementById('ped_ean').value,
-                cantidad: document.getElementById('ped_cantidad').value,
-                valorUnitario: document.getElementById('ped_vunitario').value,
-                total: document.getElementById('ped_total').value,
                 estado: document.getElementById('ped_estado').value,
                 vendedor: document.getElementById('ped_vendedor').value,
-                tipoPedido: document.getElementById('ped_tipopedido').value
+                tipoPedido: document.getElementById('ped_tipopedido').value,
+                productosArray: productosArray
             });
         }
 
@@ -313,20 +386,21 @@
         function procesarCodigoEAN(codigo) {
             let producto = baseDatosProductos.find(x => x[0] == codigo);
             if(producto) {
-                let movimiento = prompt(`Producto: ${producto[1]}\nEscribe "Entrada" o "Salida":`, "Entrada");
-                if(movimiento) {
-                    let cantidad = prompt(`Cantidad:`, "1");
-                    if(cantidad > 0) {
-                        const fechaHoraActual = new Date().toLocaleString('es-CO');
-                        enviarDatos({ 
-                            accion: "guardar_inventario", 
-                            fechaHora: fechaHoraActual, 
-                            codigoEan: codigo, 
-                            producto: producto[1], 
-                            movimiento: movimiento, 
-                            cantidad: cantidad 
-                        });
-                    }
+                let movimiento = document.getElementById('scan_movimiento').value;
+                let cantidad = document.getElementById('scan_cantidad').value;
+                
+                if(cantidad > 0) {
+                    const fechaHoraActual = new Date().toLocaleString('es-CO');
+                    enviarDatos({ 
+                        accion: "guardar_inventario", 
+                        fechaHora: fechaHoraActual, 
+                        codigoEan: codigo, 
+                        producto: producto[1], 
+                        movimiento: movimiento, 
+                        cantidad: cantidad 
+                    });
+                } else {
+                    alert("Ingrese una cantidad válida.");
                 }
             } else { alert("Código EAN no encontrado en la base de productos."); }
         }
