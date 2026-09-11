@@ -6,34 +6,182 @@
     <title>App Arándanos de Vida</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        :root { --primary: #5b21b6; --primary-dark: #4c1d95; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); }
-        .hidden { display: none !important; }
-        header { background: var(--primary); color: white; padding: 1rem; text-align: center; }
-        nav { display: flex; background: #1e293b; overflow-x: auto; }
-        nav button { flex: 1; padding: 0.8rem; background: none; border: none; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
-        nav button.active { background: var(--primary-dark); }
-        main { max-width: 950px; margin: 0 auto; padding: 1rem; }
-        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-        h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.3rem; }
-        input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
-        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
-        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;}
-        .btn-danger { background: #dc2626; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;}
-        #reader { width: 100%; max-width: 400px; margin: 0 auto 1rem auto; border-radius: 8px; overflow: hidden; background: #000; }
-        .table-container { overflow-x: auto; max-height: 400px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; white-space: nowrap; }
-        th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f1f5f9; position: sticky; top: 0; color: var(--primary-dark); font-weight: bold;}
-        .admin-nav { display: flex; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto;}
-        .admin-nav button { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: bold; color: #64748b; font-size: 0.85rem;}
-        .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
-        .admin-section { display: none; }
-        .admin-section.active-sub { display: block; }
-        .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
+        :root {
+            --primary: #5b21b6;
+            --primary-dark: #4c1d95;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+        .hidden {
+            display: none !important;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            background: #1e293b;
+            overflow-x: auto;
+        }
+        nav button {
+            flex: 1;
+            padding: 0.8rem;
+            background: none;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+        nav button.active {
+            background: var(--primary-dark);
+        }
+        main {
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .btn-action {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 1rem auto;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+            margin-top: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+        th, td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f1f5f9;
+            position: sticky;
+            top: 0;
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+        .admin-nav {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+        .admin-nav button {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        .admin-nav button.active-sub {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+        .admin-section {
+            display: none;
+        }
+        .admin-section.active-sub {
+            display: block;
+        }
+        .product-row {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto;
+            gap: 0.5rem;
+            align-items: end;
+            margin-bottom: 0.5rem;
+            background: #f8fafc;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -51,7 +199,10 @@
         <!-- PESTAÑA PEDIDOS -->
         <section id="sec-pedidos" class="card">
             <h3>Nuevo Pedido</h3>
-            <div class="form-group"><label>N° Pedido (Automático)</label><input type="text" id="ped_nro" readonly style="background:#f1f5f9;"></div>
+            <div class="form-group">
+                <label>N° Pedido (Automático)</label>
+                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;">
+            </div>
             
             <div class="form-group">
                 <label>Nombre Cliente</label>
@@ -154,16 +305,20 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
+        // Endpoint de Google Apps Script
         const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzCy9UOw7ks81ipjLhPUp6XW5aWpc8-FWCyxyeZGUYh3A-yywNqI9Ze1n7YSt44QmDLew/exec";
 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
+        let html5QrCode = null;
 
+        // Función principal ejecutada en el body onload
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
         }
 
+        // Genera el código correlativo de pedido según fecha y hora
         function generarNumeroPedido() {
             const ahora = new Date();
             const anio = ahora.getFullYear();
@@ -175,14 +330,18 @@
             document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
         }
 
+        // Navegación de pestañas principales
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
-            if(pestaña !== 'inventario') detenerEscanner();
+            if (pestaña !== 'inventario') {
+                detenerEscanner();
+            }
         }
 
+        // Navegación de pestañas secundarias en Panel Admin
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
             document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
@@ -190,77 +349,74 @@
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
 
+        // Petición a la base de datos Google Apps Script
         async function cargarDatosBase() {
-    try {
-        document.getElementById('tabla-pedidos-box').innerHTML = "Cargando datos...";
-        const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
-        
-        // Obtenemos el texto crudo para verificar si Google envía HTML en lugar de JSON
-        const textoCrudo = await res.text();
-        
-        try {
-            const data = JSON.parse(textoCrudo);
-            alert("Diagnóstico de Google:\nClientes: " + (data.clientes ? data.clientes.length : "Indefinido") + "\nProductos: " + (data.productos ? data.productos.length : "Indefinido"));
-            
-            // 1. Cargar Clientes
-            baseDatosClientes = data.clientes || [];
-            let dataCli = "";
-            baseDatosClientes.forEach(cli => { if(cli[0]) dataCli += `<option value="${cli[0]}">`; });
-            document.getElementById('lista-clientes').innerHTML = dataCli;
+            try {
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo");
+                const data = await res.json();
+                
+                // 1. Carga de Clientes
+                baseDatosClientes = data.clientes || [];
+                let dataCli = "";
+                baseDatosClientes.forEach(cli => {
+                    if (cli && cli[0]) {
+                        dataCli += `<option value="${cli[0]}">`;
+                    }
+                });
+                document.getElementById('lista-clientes').innerHTML = dataCli;
 
-            // 2. Cargar Productos
-            baseDatosProductos = data.productos || [];
-            let dataProd = "";
-            let selectManual = "<option value=''>Seleccione un producto...</option>";
-            baseDatosProductos.forEach(prod => { 
-                if(prod[1]) {
-                    dataProd += `<option value="${prod[1]}">`; 
-                    selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
+                // 2. Carga de Productos
+                baseDatosProductos = data.productos || [];
+                let dataProd = "";
+                let selectManual = "<option value=''>Seleccione un producto...</option>";
+                baseDatosProductos.forEach(prod => { 
+                    if (prod && prod[1]) {
+                        dataProd += `<option value="${prod[1]}">`; 
+                        selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
+                    }
+                });
+                document.getElementById('lista-productos-datalist').innerHTML = dataProd;
+                document.getElementById('manual_prod_select').innerHTML = selectManual;
+
+                // Insertar fila inicial de producto si no existe
+                if (document.getElementById('contenedor-productos').children.length === 0) {
+                    agregarFilaProducto();
                 }
-            });
-            document.getElementById('lista-productos-datalist').innerHTML = dataProd;
-            document.getElementById('manual_prod_select').innerHTML = selectManual;
 
-            // 3. Tablas Admin (Ejemplo simplificado para validación)
-            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Cliente</th><th>Estado</th></tr>";
-            (data.pedidos || []).forEach(p => { htmlPedidos += `<tr><td>${p[0]}</td><td>${p[2]}</td><td>${p[14]}</td></tr>`; });
-            document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+                // 3. Renderizado Tabla de Pedidos Admin
+                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
+                const listaPedidos = data.pedidos || [];
+                listaPedidos.forEach((p, idx) => {
+                    let est = p[14] || "ingresado";
+                    let btn = (est !== "despachado" && est !== "entregado") 
+                        ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` 
+                        : "Completado";
+                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
+                });
+                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-        } catch (jsonError) {
-            alert("Error: Google no está enviando JSON. Está enviando:\n" + textoCrudo.substring(0, 150));
+                // 4. Renderizado Tabla Inventario Admin
+                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+                const listaInventario = data.inventario || [];
+                listaInventario.forEach(i => {
+                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td><strong>${i[5]}</strong></td></tr>`;
+                });
+                document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+
+                // 5. Renderizado Tabla Insumos Admin
+                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
+                const listaInsumos = data.insumos || [];
+                listaInsumos.forEach(is => {
+                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`;
+                });
+                document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+
+            } catch(e) { 
+                console.error("Error al cargar los datos:", e); 
+            }
         }
-    } catch(e) { 
-        alert("Error de conexión: " + e.message); 
-    }
-}
-        // 3. Cargar Tabla de Pedidos en Admin
-        let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
-        const listaPedidos = data.pedidos || [];
-        listaPedidos.forEach((p, idx) => {
-            let est = p[14] || "ingresado";
-            let btn = (est !== "despachado" && est !== "entregado") ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` : "Completado";
-            htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
-        });
-        document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-        // 4. Cargar Inventario e Insumos
-        let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
-        const listaInventario = data.inventario || [];
-        listaInventario.forEach(i => htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td><strong>${i[5]}</strong></td></tr>`);
-        document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
-
-        let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th><th>Disponible</th></tr>";
-        const listaInsumos = data.insumos || [];
-        listaInsumos.forEach(is => htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td><strong>${is[4]}</strong></td></tr>`);
-        document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-
-        console.log("Datos cargados correctamente en la interfaz.");
-
-    } catch(e) { 
-        console.error("Error crítico al cargar datos:", e);
-        alert("No se pudieron sincronizar los datos con la nube. Revisa la consola para más detalles.");
-    }
-}
+        // Agregar fila para múltiples productos en Pedidos
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
@@ -297,7 +453,7 @@
             const row = inputElement.closest('.product-row');
             const nombreProd = inputElement.value;
             const prod = baseDatosProductos.find(x => x[1] === nombreProd);
-            if(prod) {
+            if (prod) {
                 row.querySelector('.row-ean').value = prod[0] || "";
                 row.querySelector('.row-vuni').value = prod[3] || 0;
                 calcularTotalesPedido();
@@ -320,7 +476,7 @@
         function autocompletarCliente() {
             let nombre = document.getElementById('ped_cliente').value;
             let c = baseDatosClientes.find(cli => cli[0] === nombre);
-            if(c) {
+            if (c) {
                 document.getElementById('ped_identificacion').value = c[1] || "";
                 document.getElementById('ped_direccion').value = c[2] || "";
                 document.getElementById('ped_telefono').value = c[3] || "";
@@ -329,15 +485,23 @@
             }
         }
 
+        // Envío asíncrono POST
         async function enviarDatos(datos) {
             try {
-                await fetch(URL_GOOGLE_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+                await fetch(URL_GOOGLE_SCRIPT, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(datos) 
+                });
                 alert("Operación completada con éxito.");
                 generarNumeroPedido();
                 document.getElementById('contenedor-productos').innerHTML = "";
                 agregarFilaProducto();
                 cargarDatosBase();
-            } catch (error) { alert("Error en la petición: " + error); }
+            } catch (error) { 
+                alert("Error en la petición: " + error); 
+            }
         }
 
         function guardarPedido() {
@@ -353,7 +517,7 @@
                 });
             });
 
-            if(productosArray.length === 0 || !productosArray[0].producto) {
+            if (productosArray.length === 0 || !productosArray[0].producto) {
                 alert("Debe agregar al menos un producto al pedido.");
                 return;
             }
@@ -389,33 +553,55 @@
         }
 
         async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if(confirm(`¿Deseas despachar este pedido?\nSe descontará el producto y sus insumos asociados.`)) {
-                await enviarDatos({ accion: "despachar_pedido", fila: indexFila + 2, codigoEan: ean, cantidad: cantidad, producto: producto });
+            if (confirm(`¿Deseas despachar este pedido?\nSe descontará el producto y sus insumos asociados.`)) {
+                await enviarDatos({ 
+                    accion: "despachar_pedido", 
+                    fila: indexFila + 2, 
+                    codigoEan: ean, 
+                    cantidad: cantidad, 
+                    producto: producto 
+                });
             }
         }
 
-        let html5QrCode = null;
+        // Lector QR y código de barras
         function iniciarEscanner() {
-            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } }, 
-                (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, (err) => {}
-            ).catch(err => alert("Permite el uso de la cámara en el navegador."));
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 100 } }, 
+                (codigo) => { 
+                    detenerEscanner(); 
+                    procesarCodigoEAN(codigo); 
+                }, 
+                () => {}
+            ).catch(() => alert("Permite el uso de la cámara en el navegador."));
         }
-        function detenerEscanner() { if (html5QrCode) html5QrCode.stop().catch(err => {}); }
+
+        function detenerEscanner() { 
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {}); 
+            }
+        }
 
         function ingresoManualProducto() {
             let eanSeleccionado = document.getElementById('manual_prod_select').value;
-            if(eanSeleccionado) { procesarCodigoEAN(eanSeleccionado); } 
-            else { alert("Seleccione un producto del selector."); }
+            if (eanSeleccionado) { 
+                procesarCodigoEAN(eanSeleccionado); 
+            } else { 
+                alert("Seleccione un producto del selector."); 
+            }
         }
 
         function procesarCodigoEAN(codigo) {
             let producto = baseDatosProductos.find(x => x[0] == codigo);
-            if(producto) {
+            if (producto) {
                 let movimiento = document.getElementById('scan_movimiento').value;
                 let cantidad = document.getElementById('scan_cantidad').value;
                 
-                if(cantidad > 0) {
+                if (cantidad > 0) {
                     const fechaHoraActual = new Date().toLocaleString('es-CO');
                     enviarDatos({ 
                         accion: "guardar_inventario", 
@@ -428,7 +614,9 @@
                 } else {
                     alert("Ingrese una cantidad válida.");
                 }
-            } else { alert("Código EAN no encontrado en la base de productos."); }
+            } else { 
+                alert("Código EAN no encontrado en la base de productos."); 
+            }
         }
     </script>
 </body>
