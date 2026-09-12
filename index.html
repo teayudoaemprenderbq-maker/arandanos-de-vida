@@ -183,6 +183,8 @@
             generarNumeroPedido();
             cargarDatosBase();
             cargarInsumosFetch(); 
+            // NUEVO: Ejecuta la función cargarDatosBase automáticamente cada 30 segundos (30000 milisegundos)
+    setInterval(cargarDatosBase, 30000);
         }
 
         function generarNumeroPedido() {
