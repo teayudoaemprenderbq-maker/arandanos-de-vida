@@ -41,6 +41,11 @@
         .admin-section.active-sub { display: block; }
         .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
         #scan_feedback { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; min-height: 1.2em; }
+        
+        /* Estilos del pie de página para tu logo */
+        .developer-credit { text-align: center; padding: 2rem 1rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
+        .developer-credit p { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .developer-credit img { height: 45px; object-fit: contain; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -112,7 +117,6 @@
             </div>
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
         </section>
-
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
             <h3>Lector de Códigos (Inventario)</h3> 
@@ -140,7 +144,6 @@
                 </div>
             </div>
         </section>
-
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3> 
@@ -156,11 +159,12 @@
             <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
             <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
         </section>
-
         <!-- PESTAÑA ADMIN -->
         <section id="sec-admin" class="card hidden">
             <h3>Panel Administrativo</h3> 
-            <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosBase()">Actualizar Datos de la Nube</button>
+            <!-- BOTÓN ACTUALIZADO PARA EVITAR CONFLICTOS -->
+            <button id="btn-actualizar" class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="forzarActualizacion()">Actualizar Datos de la Nube</button>
+            
             <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
@@ -170,21 +174,42 @@
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
+        
+        <!-- SECCIÓN DE TU LOGOTIPO -->
+        <footer class="developer-credit">
+            <p>Plataforma desarrollada por</p>
+            <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador">
+        </footer>
     </main>
     <datalist id="lista-productos-datalist"></datalist>
-
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwUPdQqEIf8SiCYbUiwObc42b3CMl1fZWTb8DS4XVjHS4Jdu2H_er0cbYmw1jqUZS3U3w/exec"; // Reemplaza con tu URL de Google Apps Script
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwUPdQqEIf8SiCYbUiwObc42b3CMl1fZWTb8DS4XVjHS4Jdu2H_er0cbYmw1jqUZS3U3w/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
+        let intervaloActualizacion; // Variable global para controlar el temporizador
 
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
             cargarInsumosFetch(); 
-            // NUEVO: Ejecuta la función cargarDatosBase automáticamente cada 30 segundos (30000 milisegundos)
-    setInterval(cargarDatosBase, 30000);
+            // NUEVO: Incrementamos a 60 segundos (60000ms) para evitar bloqueos del servidor
+            intervaloActualizacion = setInterval(cargarDatosBase, 60000);
+        }
+
+        // NUEVO: Función para actualización manual segura
+        async function forzarActualizacion() {
+            const btn = document.getElementById('btn-actualizar');
+            btn.innerText = "Actualizando datos..."; // Indicador visual
+            btn.disabled = true; // Previene doble clic
+            
+            clearInterval(intervaloActualizacion); // Pausa el ciclo automático temporalmente
+            await cargarDatosBase(); // Ejecuta la descarga de datos
+            intervaloActualizacion = setInterval(cargarDatosBase, 60000); // Reanuda el ciclo automático
+            
+            btn.innerText = "Actualizar Datos de la Nube";
+            btn.disabled = false;
+            alert("Los datos se han sincronizado correctamente.");
         }
 
         function generarNumeroPedido() {
@@ -197,7 +222,6 @@
             const seg = String(ahora.getSeconds()).padStart(2, '0');
             document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
         }
-
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
@@ -206,14 +230,12 @@
             document.getElementById('scan_feedback').innerText = ""; 
             if (pestaña !== 'inventario') { detenerEscanner(); }
         }
-
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
             document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
             document.getElementById(subId).classList.add('active-sub');
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
-
         function mostrarFormularioClienteNuevo() {
             const seccion = document.getElementById('seccion-nuevo-cliente');
             seccion.classList.toggle('hidden');
@@ -221,7 +243,6 @@
                 document.getElementById('nuevo_cli_nit').value = document.getElementById('ped_identificacion').value;
             }
         }
-
         async function guardarClienteNuevo() {
             let nombreCliente = document.getElementById('ped_cliente').value;
             let nit = document.getElementById('nuevo_cli_nit').value;
@@ -229,12 +250,10 @@
             let tel = document.getElementById('nuevo_cli_tel').value;
             let correo = document.getElementById('nuevo_cli_correo').value;
             let ciudad = document.getElementById('nuevo_cli_ciudad').value;
-
             if(!nombreCliente || !nit) {
                 alert("Por favor ingrese al menos el nombre del cliente y su NIT/Identificación.");
                 return;
             }
-
             await enviarDatos({
                 accion: "guardar_cliente",
                 nombre: nombreCliente,
@@ -244,7 +263,6 @@
                 correo: correo,
                 ciudad: ciudad
             });
-
             document.getElementById('ped_identificacion').value = nit;
             document.getElementById('ped_direccion').value = dir;
             document.getElementById('ped_telefono').value = tel;
@@ -252,7 +270,6 @@
             document.getElementById('ped_ciudad').value = ciudad;
             document.getElementById('seccion-nuevo-cliente').classList.add('hidden');
         }
-
         async function cargarDatosBase() {
             try {
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
@@ -265,7 +282,6 @@
                     if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
                 });
                 document.getElementById('lista-clientes').innerHTML = dataCli;
-
                 baseDatosProductos = data.productos || [];
                 let dataProd = "";
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
@@ -278,7 +294,6 @@
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
                 if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-
                 // Tabla Pedidos Admin
                 let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
                 const listaPedidos = data.pedidos || [];
@@ -290,16 +305,14 @@
                     htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
-
-                // Tabla Prod. Terminados (Estructura Solicitada)
+                // Tabla Prod. Terminados 
                 let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
                 const listaInventario = data.inventario || [];
                 listaInventario.forEach(i => {
                     htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td><strong>${i[6]}</strong></td><td>${i[7]}</td><td><strong style="color:var(--primary);">${i[8]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
-
-                // Tabla Insumos (Estructura Solicitada)
+                // Tabla Insumos 
                 let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
                 const listaInsumosPage = data.insumos || [];
                 listaInsumosPage.forEach(is => {
@@ -308,7 +321,6 @@
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
             } catch(e) { console.error("Error al cargar los datos:", e); }
         }
-
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
@@ -323,7 +335,6 @@
             `;
             contenedor.appendChild(div);
         }
-
         function actualizarFilaProducto(inputElement) {
             const row = inputElement.closest('.product-row');
             const nombreProd = inputElement.value;
@@ -334,7 +345,6 @@
                 calcularTotalesPedido();
             }
         }
-
         function calcularTotalesPedido() {
             const filas = document.querySelectorAll('.product-row');
             let granTotal = 0;
@@ -347,7 +357,6 @@
             });
             document.getElementById('gran_total').innerText = granTotal;
         }
-
         function autocompletarCliente() {
             let nombre = document.getElementById('ped_cliente').value;
             let c = baseDatosClientes.find(cli => cli[0] === nombre);
@@ -359,7 +368,6 @@
                 document.getElementById('ped_ciudad').value = c[5] || "";
             }
         }
-
         async function enviarDatos(datos) {
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { 
@@ -374,7 +382,6 @@
                 alert("Ocurrió un error al enviar los datos."); 
             }
         }
-
         function guardarPedido() {
             const filas = document.querySelectorAll('.product-row');
             let productosArray = [];
@@ -408,7 +415,6 @@
                 productosArray: productosArray
             });
         }
-
         function guardarInsumo() {
             enviarDatos({ 
                 accion: "guardar_insumo", 
@@ -418,7 +424,6 @@
                 cantidad: document.getElementById('ins_cantidad').value 
             });
         }
-
         async function despacharPedido(indexFila, ean, cantidad, producto) {
             if (confirm("¿Deseas despachar este pedido? Se actualizará el inventario y se generará la remisión.")) {
                 await enviarDatos({ 
@@ -430,21 +435,17 @@
                 });
             }
         }
-
         function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
                 (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, () => {} 
             ).catch(() => { alert("No se pudo activar la cámara."); });
         }
-
         function detenerEscanner() { if (html5QrCode) { html5QrCode.stop().catch(() => {}); } }
-
         function ingresoManualProducto() {
             let ean = document.getElementById('manual_prod_select').value;
             if (ean) { procesarCodigoEAN(ean); } else { alert("Seleccione un producto."); }
         }
-
         function procesarCodigoEAN(codigo) {
             const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
             if (producto) {
@@ -462,7 +463,6 @@
                 }
             } else { alert("Código EAN no encontrado."); }
         }
-
         function cargarInsumosFetch() {
             fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
                 .then(res => res.json())
