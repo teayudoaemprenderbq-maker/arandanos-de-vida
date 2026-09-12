@@ -13,186 +13,37 @@
             --card-bg: #ffffff;
             --text-main: #1e293b;
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-        }
-        .hidden {
-            display: none !important;
-        }
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-        nav {
-            display: flex;
-            background: #1e293b;
-            overflow-x: auto;
-        }
-        nav button {
-            flex: 1;
-            padding: 0.8rem;
-            background: none;
-            border: none;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 0.85rem;
-        }
-        nav button.active {
-            background: var(--primary-dark);
-        }
-        main {
-            max-width: 950px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-        .card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-        h3 {
-            margin-bottom: 1rem;
-            color: var(--primary);
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 0.3rem;
-        }
-        input, select {
-            width: 100%;
-            padding: 0.6rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-        }
-        .btn-submit {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 1rem;
-        }
-        .btn-action {
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-        #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto 1rem auto;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
-        }
-        .table-container {
-            overflow-x: auto;
-            max-height: 400px;
-            margin-top: 0.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-            text-align: left;
-            white-space: nowrap;
-        }
-        th, td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background: #f1f5f9;
-            position: sticky;
-            top: 0;
-            color: var(--primary-dark);
-            font-weight: bold;
-        }
-        .admin-nav {
-            display: flex;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            overflow-x: auto;
-        }
-        .admin-nav button {
-            padding: 0.5rem 1rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            color: #64748b;
-            font-size: 0.85rem;
-        }
-        .admin-nav button.active-sub {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-        }
-        .admin-section {
-            display: none;
-        }
-        .admin-section.active-sub {
-            display: block;
-        }
-        .product-row {
-            display: grid;
-            grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto;
-            gap: 0.5rem;
-            align-items: end;
-            margin-bottom: 0.5rem;
-            background: #f8fafc;
-            padding: 0.5rem;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        #scan_feedback {
-            text-align: center;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 10px;
-            min-height: 1.2em;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        .hidden { display: none !important; }
+        header { background: var(--primary); color: white; padding: 1rem; text-align: center; }
+        nav { display: flex; background: #1e293b; overflow-x: auto; }
+        nav button { flex: 1; padding: 0.8rem; background: none; border: none; color: white; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+        nav button.active { background: var(--primary-dark); }
+        main { max-width: 950px; margin: 0 auto; padding: 1rem; }
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        h3 { margin-bottom: 1rem; color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.3rem; }
+        input, select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
+        .btn-action { background: #0ea5e9; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        .btn-danger { background: #dc2626; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        #reader { width: 100%; max-width: 400px; margin: 0 auto 1rem auto; border-radius: 8px; overflow: hidden; background: #000; }
+        .table-container { overflow-x: auto; max-height: 400px; margin-top: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; white-space: nowrap; }
+        th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; position: sticky; top: 0; color: var(--primary-dark); font-weight: bold; }
+        .admin-nav { display: flex; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto; }
+        .admin-nav button { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: bold; color: #64748b; font-size: 0.85rem; }
+        .admin-nav button.active-sub { color: var(--primary); border-bottom: 3px solid var(--primary); }
+        .admin-section { display: none; }
+        .admin-section.active-sub { display: block; }
+        .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
+        #scan_feedback { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; min-height: 1.2em; }
     </style>
 </head>
 <body onload="inicializarApp()">
-
     <header><h2>Arándanos de Vida</h2></header>
     
     <nav>
@@ -201,20 +52,29 @@
         <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
         <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Admin</button>
     </nav>
-
     <main>
         <!-- PESTAÑA PEDIDOS -->
         <section id="sec-pedidos" class="card">
             <h3>Nuevo Pedido</h3>
             <div class="form-group">
                 <label>N° Pedido (Automático)</label>
-                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;">
+                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;">[cite: 7]
             </div>
             
             <div class="form-group">
-                <label>Nombre Cliente</label>
-                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente">
+                <label>Nombre Cliente <button type="button" class="btn-action" style="float: right; padding: 2px 6px;" onclick="mostrarFormularioClienteNuevo()">+ Nuevo Cliente</button></label>
+                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente">[cite: 7]
                 <datalist id="lista-clientes"></datalist>
+            </div>
+            
+            <div id="seccion-nuevo-cliente" class="hidden" style="background: #f1f5f9; padding: 10px; border-radius: 6px; margin-bottom: 1rem;">
+                <h4>Registrar Nuevo Cliente</h4>
+                <div class="form-group"><label>NIT / Identificación</label><input type="text" id="nuevo_cli_nit"></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="nuevo_cli_dir"></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="nuevo_cli_tel"></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="nuevo_cli_correo"></div>
+                <div class="form-group"><label>Ciudad</label><input type="text" id="nuevo_cli_ciudad"></div>
+                <button type="button" class="btn-action" onclick="guardarClienteNuevo()">Guardar Cliente en Base de Datos</button>
             </div>
             
             <div class="form-group"><label>Identificación</label><input type="text" id="ped_identificacion"></div>
@@ -227,12 +87,11 @@
             <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
             <h4>Productos del Pedido</h4>
             <div id="contenedor-productos" style="margin-top: 0.5rem;"></div>
-            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button>
+            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button>[cite: 7]
             <div style="margin-top: 1rem; text-align: right; font-weight: bold; font-size: 1rem;">
                 Gran Total: $<span id="gran_total">0</span>
             </div>
             <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
-
             <div class="form-group">
                 <label>Estado</label>
                 <select id="ped_estado">
@@ -256,7 +115,7 @@
 
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
-            <h3>Lector de Códigos (Inventario)</h3>
+            <h3>Lector de Códigos (Inventario)</h3>[cite: 7]
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="scan_movimiento">
@@ -268,9 +127,7 @@
                 <label>Cantidad</label>
                 <input type="number" id="scan_cantidad" value="1" min="1">
             </div>
-
             <p id="scan_feedback"></p>
-
             <div id="reader"></div>
             <button class="btn-submit" onclick="iniciarEscanner()">Activar Cámara</button>
             <button class="btn-submit" style="background: #dc2626; margin-top:5px;" onclick="detenerEscanner()">Detener Cámara</button>
@@ -286,14 +143,12 @@
 
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
-            <h3>Control de Insumos</h3>
-            
+            <h3>Control de Insumos</h3>[cite: 7]
             <div class="form-group">
                 <label>Insumo</label>
                 <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
                 <datalist id="lista-insumos-datalist"></datalist>
             </div>
-
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="ins_movimiento"><option value="Entrada">Entrada</option><option value="Salida">Salida</option></select>
@@ -304,7 +159,7 @@
 
         <!-- PESTAÑA ADMIN -->
         <section id="sec-admin" class="card hidden">
-            <h3>Panel Administrativo</h3>
+            <h3>Panel Administrativo</h3>[cite: 7]
             <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosBase()">Actualizar Datos de la Nube</button>
             <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
@@ -316,25 +171,20 @@
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
     </main>
-
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        // Endpoint de Google Apps Script
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzGZ3NIXjNJF66tQTyskDgKIISeyZLcMv6VgrDbhaY1SGYyiDw1JHrzCwvIFy1V9heMyQ/exec";
-
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwUPdQqEIf8SiCYbUiwObc42b3CMl1fZWTb8DS4XVjHS4Jdu2H_er0cbYmw1jqUZS3U3w/exec"; // Reemplaza con tu URL de Google Apps Script
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
 
-        // Función principal ejecutada en el body onload
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
             cargarInsumosFetch(); 
         }
 
-        // Genera el código correlativo de pedido según fecha y hora
         function generarNumeroPedido() {
             const ahora = new Date();
             const anio = ahora.getFullYear();
@@ -346,21 +196,15 @@
             document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
         }
 
-        // Navegación de pestañas principales
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
             document.getElementById('sec-' + pestaña).classList.remove('hidden');
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
-            
             document.getElementById('scan_feedback').innerText = ""; 
-
-            if (pestaña !== 'inventario') {
-                detenerEscanner();
-            }
+            if (pestaña !== 'inventario') { detenerEscanner(); }
         }
 
-        // Navegación de pestañas secundarias en Panel Admin
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
             document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
@@ -368,25 +212,58 @@
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
 
-        // Petición a la base de datos Google Apps Script (doGet)
+        function mostrarFormularioClienteNuevo() {
+            const seccion = document.getElementById('seccion-nuevo-cliente');
+            seccion.classList.toggle('hidden');
+            if(!seccion.classList.contains('hidden')) {
+                document.getElementById('nuevo_cli_nit').value = document.getElementById('ped_identificacion').value;
+            }
+        }
+
+        async function guardarClienteNuevo() {
+            let nombreCliente = document.getElementById('ped_cliente').value;
+            let nit = document.getElementById('nuevo_cli_nit').value;
+            let dir = document.getElementById('nuevo_cli_dir').value;
+            let tel = document.getElementById('nuevo_cli_tel').value;
+            let correo = document.getElementById('nuevo_cli_correo').value;
+            let ciudad = document.getElementById('nuevo_cli_ciudad').value;
+
+            if(!nombreCliente || !nit) {
+                alert("Por favor ingrese al menos el nombre del cliente y su NIT/Identificación.");
+                return;
+            }
+
+            await enviarDatos({
+                accion: "guardar_cliente",
+                nombre: nombreCliente,
+                identificacion: nit,
+                direccion: dir,
+                telefono: tel,
+                correo: correo,
+                ciudad: ciudad
+            });
+
+            document.getElementById('ped_identificacion').value = nit;
+            document.getElementById('ped_direccion').value = dir;
+            document.getElementById('ped_telefono').value = tel;
+            document.getElementById('ped_correo').value = correo;
+            document.getElementById('ped_ciudad').value = ciudad;
+            document.getElementById('seccion-nuevo-cliente').classList.add('hidden');
+        }
+
         async function cargarDatosBase() {
             try {
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
                 const data = res.ok ? await res.json() : null; 
-
                 if (!data) return; 
                 
-                // 1. Carga de Clientes
                 baseDatosClientes = data.clientes || [];
                 let dataCli = "";
                 baseDatosClientes.forEach(cli => {
-                    if (cli && cli[0]) {
-                        dataCli += `<option value="${cli[0]}">`;
-                    }
+                    if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
                 });
                 document.getElementById('lista-clientes').innerHTML = dataCli;
 
-                // 2. Carga de Productos
                 baseDatosProductos = data.productos || [];
                 let dataProd = "";
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
@@ -398,12 +275,9 @@
                 });
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
+                if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
 
-                if (document.getElementById('contenedor-productos').children.length === 0) {
-                    agregarFilaProducto();
-                }
-
-                // 3. Renderizado Tabla de Pedidos Admin
+                // Tabla Pedidos Admin
                 let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
                 const listaPedidos = data.pedidos || [];
                 listaPedidos.forEach((p, idx) => {
@@ -415,25 +289,22 @@
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
 
-                // 4. Renderizado Tabla Inventario Admin
-                let htmlInv = "<table><tr><th>Fecha/Hora</th><th>EAN</th><th>Producto</th><th>Mov</th><th>Cant</th></tr>";
+                // Tabla Prod. Terminados (Estructura Solicitada)
+                let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
                 const listaInventario = data.inventario || [];
                 listaInventario.forEach(i => {
-                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td><strong>${i[4]}</strong></td></tr>`;
+                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td><strong>${i[6]}</strong></td><td>${i[7]}</td><td><strong style="color:var(--primary);">${i[8]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
 
-                // 5. Renderizado Tabla Insumos Admin
-                let htmlIns = "<table><tr><th>Fecha/Hora</th><th>Insumo</th><th>Mov</th><th>Cant</th></tr>";
+                // Tabla Insumos (Estructura Solicitada)
+                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
                 const listaInsumosPage = data.insumos || [];
                 listaInsumosPage.forEach(is => {
-                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td><strong>${is[3]}</strong></td></tr>`;
+                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td><strong>${is[5]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-
-            } catch(e) { 
-                console.error("Error al cargar los datos:", e); 
-            }
+            } catch(e) { console.error("Error al cargar los datos:", e); }
         }
 
         function agregarFilaProducto() {
@@ -441,29 +312,12 @@
             const div = document.createElement('div');
             div.className = 'product-row';
             div.innerHTML = `
-                <div>
-                    <label>Producto</label>
-                    <input list="lista-productos-datalist" class="row-prod" onchange="actualizarFilaProducto(this)" placeholder="Seleccione producto">
-                </div>
-                <div>
-                    <label>EAN</label>
-                    <input type="text" class="row-ean" readonly>
-                </div>
-                <div>
-                    <label>Cant</label>
-                    <input type="number" class="row-cant" value="1" min="1" oninput="calcularTotalesPedido()">
-                </div>
-                <div>
-                    <label>V. Unitario</label>
-                    <input type="number" class="row-vuni" oninput="calcularTotalesPedido()">
-                </div>
-                <div>
-                    <label>Subtotal</label>
-                    <input type="number" class="row-subtotal" readonly>
-                </div>
-                <div style="padding-bottom: 2px;">
-                    <button type="button" class="btn-danger" onclick="this.parentElement.parentElement.remove(); calcularTotalesPedido();">X</button>
-                </div>
+                <div><label>Producto</label><input list="lista-productos-datalist" class="row-prod" onchange="actualizarFilaProducto(this)" placeholder="Seleccione producto"></div>
+                <div><label>EAN</label><input type="text" class="row-ean" readonly></div>
+                <div><label>Cant</label><input type="number" class="row-cant" value="1" min="1" oninput="calcularTotalesPedido()"></div>
+                <div><label>V. Unitario</label><input type="number" class="row-vuni" oninput="calcularTotalesPedido()"></div>
+                <div><label>Subtotal</label><input type="number" class="row-subtotal" readonly></div>
+                <div style="padding-bottom: 2px;"><button type="button" class="btn-danger" onclick="this.parentElement.parentElement.remove(); calcularTotalesPedido();">X</button></div>
             `;
             contenedor.appendChild(div);
         }
@@ -504,7 +358,6 @@
             }
         }
 
-        // Envío asíncrono POST al backend (doPost)
         async function enviarDatos(datos) {
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { 
@@ -513,23 +366,9 @@
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify(datos) 
                 });
-                
-                alert("Operación completada. Verifique los cambios en unos segundos.");
-                
-                if (datos.accion === "guardar_pedido") {
-                    generarNumeroPedido();
-                    document.getElementById('contenedor-productos').innerHTML = "";
-                    agregarFilaProducto();
-                    document.getElementById('ped_cliente').value = "";
-                } else if (datos.accion === "guardar_insumo") {
-                    document.getElementById('ins_nombre').value = "";
-                    document.getElementById('ins_cantidad').value = "";
-                }
-                
+                alert("Operación completada con éxito.");
                 setTimeout(cargarDatosBase, 1500); 
-
             } catch (error) { 
-                console.error("Error en enviarDatos:", error);
                 alert("Ocurrió un error al enviar los datos."); 
             }
         }
@@ -546,17 +385,14 @@
                     total: row.querySelector('.row-subtotal').value
                 });
             });
-
             if (productosArray.length === 0 || !productosArray[0].producto) {
                 alert("Debe agregar al menos un producto al pedido.");
                 return;
             }
-
-            const fechaHoraActual = new Date().toLocaleString('es-CO');
             enviarDatos({
                 accion: "guardar_pedido",
                 numeroPedido: document.getElementById('ped_nro').value,
-                fechaHora: fechaHoraActual,
+                fechaHora: new Date().toLocaleString('es-CO'),
                 nombreCliente: document.getElementById('ped_cliente').value,
                 identificacion: document.getElementById('ped_identificacion').value,
                 sucursal: document.getElementById('ped_sucursal').value,
@@ -572,182 +408,67 @@
         }
 
         function guardarInsumo() {
-            const fechaHoraActual = new Date().toLocaleString('es-CO');
-            const insumo = document.getElementById('ins_nombre').value;
-            const cant = document.getElementById('ins_cantidad').value;
-            
-            if(!insumo || !cant) { alert("Complete Insumo y Cantidad."); return; }
-
             enviarDatos({ 
                 accion: "guardar_insumo", 
-                fechaHora: fechaHoraActual, 
-                insumo: insumo, 
+                fechaHora: new Date().toLocaleString('es-CO'), 
+                insumo: document.getElementById('ins_nombre').value, 
                 movimiento: document.getElementById('ins_movimiento').value, 
-                cantidad: cant 
+                cantidad: document.getElementById('ins_cantidad').value 
             });
         }
 
-        // =============================================================================
-        // <!-- CORRECCIÓN -->: despacharPedido simplificada
-        // =============================================================================
-        /**
-         * Maneja la acción de despachar un pedido desde la tabla Admin.
-         * <!-- EXPLICACIÓN -->: No intenta leer datos complejos de la tabla visual
-         * para evitar el error 'Cannot read properties of undefined'.
-         * Simplemente confirma la acción y envía el índice al servidor.
-         */
         async function despacharPedido(indexFila, ean, cantidad, producto) {
-            // Simplificamos la confirmación para evitar buscar datos en la tabla visual
-            var mensajeConfirmacion = "¿Deseas despachar este pedido?\n" +
-                                      "Se registrará la salida del producto y de sus insumos en las hojas de Sheets, " +
-                                      "y se generará la remisión en PDF en tu Drive.";
-            
-            if (confirm(mensajeConfirmacion)) {
-                // Enviamos la orden de despacho al servidor (backend)
+            if (confirm("¿Deseas despachar este pedido? Se actualizará el inventario y se generará la remisión.")) {
                 await enviarDatos({ 
                     accion: "despachar_pedido", 
-                    // +2 por cabecera y base 0 para que coincida con la fila física en Sheets
                     fila: indexFila + 2, 
                     codigoEan: ean, 
                     cantidad: cantidad, 
                     producto: producto 
                 });
-
-                // Informamos al usuario
-                alert("Procesando despacho. La remisión se guardará en Drive.");
             }
         }
 
-        // =============================================================================
-        // <!-- CORRECCIÓN -->: iniciarEscanner más robusta
-        // =============================================================================
-        /**
-         * Activa la cámara para escanear códigos de barras.
-         * <!-- EXPLICACIÓN -->: Configuración estándar y manejo de errores limpio
-         * para asegurar que el lector se active.
-         */
         function iniciarEscanner() {
-            if (!html5QrCode) {
-                // Creamos el objeto del lector una sola vez
-                html5QrCode = new Html5Qrcode("reader");
-            }
-            // Limpiar feedback anterior
-            document.getElementById('scan_feedback').innerText = ""; 
-            
-            // Configuramos e iniciamos el lector
-            html5QrCode.start(
-                // facinMode: "environment" intenta usar la cámara trasera
-                { facingMode: "environment" }, 
-                { 
-                    fps: 10,    // Marcos por segundo para el escaneo
-                    // qrbox define el área de escaneo. Ajustado para códigos de barras largos.
-                    qrbox: { width: 300, height: 150 } 
-                },
-                // Si el escaneo es exitoso, detenemos cámara y procesamos el código
-                (codigo) => { 
-                    detenerEscanner(); 
-                    procesarCodigoEAN(codigo); 
-                }, 
-                // Error silencioso durante el escaneo para no molestar
-                () => {} 
-            ).then(() => {
-                // Feedback visual si se desea al iniciar la cámara con éxito
-            }).catch((err) => {
-                // Si falla, avisamos al usuario sobre los permisos
-                console.error("Error al iniciar el escáner:", err);
-                alert("No se pudo activar la cámara. Por favor, asegúrate de dar permisos de cámara al navegador.");
-            });
+            if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
+                (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, () => {} 
+            ).catch(() => { alert("No se pudo activar la cámara."); });
         }
 
-        function detenerEscanner() { 
-            if (html5QrCode) {
-                html5QrCode.stop().catch(() => {}); 
-            }
-        }
+        function detenerEscanner() { if (html5QrCode) { html5QrCode.stop().catch(() => {}); } }
 
         function ingresoManualProducto() {
-            let eanSeleccionado = document.getElementById('manual_prod_select').value;
-            if (eanSeleccionado) { 
-                procesarCodigoEAN(eanSeleccionado); 
-            } else { 
-                alert("Seleccione un producto del selector."); 
-            }
+            let ean = document.getElementById('manual_prod_select').value;
+            if (ean) { procesarCodigoEAN(ean); } else { alert("Seleccione un producto."); }
         }
 
-       function procesarCodigoEAN(codigo) {
-            // Buscamos el producto en tu base de datos
+        function procesarCodigoEAN(codigo) {
             const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
-            
             if (producto) {
-                const nombreProducto = producto[1];
                 let movimiento = document.getElementById('scan_movimiento').value;
-                let cantidadOriginal = document.getElementById('scan_cantidad').value; // Normalmente es 1
-                
-                // Mostrar en pantalla qué producto se detectó
-                document.getElementById('scan_feedback').innerText = "Producto Detectado:\n" + nombreProducto;
-
-                // --- NUEVO: Cuadro para pedir o modificar la cantidad (prompt) ---
-                let mensaje = `Se detectó: ${nombreProducto}\n¿Qué cantidad deseas registrar como ${movimiento}?`;
-                
-                // prompt muestra una cajita para escribir. Le pasamos cantidadOriginal como valor por defecto.
-                let entradaUsuario = prompt(mensaje, cantidadOriginal);
-
-                // Si el usuario hace clic en "Cancelar", entradaUsuario será 'null'
-                if (entradaUsuario !== null) {
-                    
-                    // Convertimos lo que el usuario escribió a un número para evitar errores
-                    let cantidadFinal = parseFloat(entradaUsuario);
-
-                    // Verificamos que sea un número válido y mayor a 0
-                    if (cantidadFinal > 0) {
-                        const fechaHoraActual = new Date().toLocaleString('es-CO');
-                        
-                        // Enviamos los datos con la NUEVA cantidad ingresada
-                        enviarDatos({ 
-                            accion: "guardar_inventario", 
-                            fechaHora: fechaHoraActual, 
-                            codigoEan: codigo, 
-                            producto: nombreProducto, 
-                            movimiento: movimiento, 
-                            cantidad: cantidadFinal 
-                        });
-                        document.getElementById('scan_feedback').innerText = `Procesando registro de ${cantidadFinal} unidad(es)...`;
-                    } else {
-                        // Si escribió letras, un cero o un número negativo
-                        alert("Por favor, ingresa una cantidad válida mayor a 0.");
-                        document.getElementById('scan_feedback').innerText = "❌ Registro cancelado: cantidad inválida.";
-                    }
-                } else {
-                    // Si el usuario hizo clic en el botón "Cancelar" de la ventanita
-                    document.getElementById('scan_feedback').innerText = "❌ Registro cancelado por el usuario.";
+                let entradaUsuario = prompt(`Producto: ${producto[1]}\nCantidad para ${movimiento}:`, document.getElementById('scan_cantidad').value);
+                if (entradaUsuario !== null && parseFloat(entradaUsuario) > 0) {
+                    enviarDatos({ 
+                        accion: "guardar_inventario", 
+                        fechaHora: new Date().toLocaleString('es-CO'), 
+                        codigoEan: codigo, 
+                        producto: producto[1], 
+                        movimiento: movimiento, 
+                        cantidad: parseFloat(entradaUsuario) 
+                    });
                 }
-            } else { 
-                alert("Código EAN no encontrado en la base de productos (" + codigo + ")."); 
-                document.getElementById('scan_feedback').innerText = "";
-            }
+            } else { alert("Código EAN no encontrado."); }
         }
+
         function cargarInsumosFetch() {
             fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
-                .then(res => {
-                    if (!res.ok) throw new Error('Error en la red');
-                    return res.json();
-                })
-                .then(listaInsumos => {
-                    let datalist = document.getElementById('lista-insumos-datalist');
+                .then(res => res.json())
+                .then(lista => {
                     let options = "";
-                    if (listaInsumos && listaInsumos.length > 0) {
-                        listaInsumos.forEach(function(insumo) {
-                            options += `<option value="${insumo}">`;
-                        });
-                    } else {
-                        options = "<option value='No se encontraron insumos'>";
-                    }
-                    datalist.innerHTML = options;
-                })
-                .catch(e => {
-                    console.error("Error cargando datalist insumos con fetch:", e);
-                    document.getElementById('lista-insumos-datalist').innerHTML = "<option value='Error al cargar insumos'>";
-                });
+                    lista.forEach(i => { options += `<option value="${i}">`; });
+                    document.getElementById('lista-insumos-datalist').innerHTML = options;
+                }).catch(() => {});
         }
     </script>
 </body>
