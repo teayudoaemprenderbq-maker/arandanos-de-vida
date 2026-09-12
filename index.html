@@ -58,12 +58,12 @@
             <h3>Nuevo Pedido</h3>
             <div class="form-group">
                 <label>N° Pedido (Automático)</label>
-                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;">[cite: 7]
+                <input type="text" id="ped_nro" readonly style="background:#f1f5f9;"> 
             </div>
             
             <div class="form-group">
                 <label>Nombre Cliente <button type="button" class="btn-action" style="float: right; padding: 2px 6px;" onclick="mostrarFormularioClienteNuevo()">+ Nuevo Cliente</button></label>
-                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente">[cite: 7]
+                <input list="lista-clientes" id="ped_cliente" onchange="autocompletarCliente()" placeholder="Selecciona o escribe el cliente"> 
                 <datalist id="lista-clientes"></datalist>
             </div>
             
@@ -87,7 +87,7 @@
             <hr style="margin: 1rem 0; border:0; border-top:1px solid #cbd5e1;">
             <h4>Productos del Pedido</h4>
             <div id="contenedor-productos" style="margin-top: 0.5rem;"></div>
-            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button>[cite: 7]
+            <button type="button" class="btn-action" style="margin-top: 0.5rem; width: 100%; padding: 0.5rem;" onclick="agregarFilaProducto()">+ Agregar otro producto</button> 
             <div style="margin-top: 1rem; text-align: right; font-weight: bold; font-size: 1rem;">
                 Gran Total: $<span id="gran_total">0</span>
             </div>
@@ -115,7 +115,7 @@
 
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
-            <h3>Lector de Códigos (Inventario)</h3>[cite: 7]
+            <h3>Lector de Códigos (Inventario)</h3> 
             <div class="form-group">
                 <label>Tipo de Movimiento</label>
                 <select id="scan_movimiento">
@@ -143,7 +143,7 @@
 
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
-            <h3>Control de Insumos</h3>[cite: 7]
+            <h3>Control de Insumos</h3> 
             <div class="form-group">
                 <label>Insumo</label>
                 <input list="lista-insumos-datalist" id="ins_nombre" placeholder="Selecciona o escribe el insumo">
@@ -159,7 +159,7 @@
 
         <!-- PESTAÑA ADMIN -->
         <section id="sec-admin" class="card hidden">
-            <h3>Panel Administrativo</h3>[cite: 7]
+            <h3>Panel Administrativo</h3> 
             <button class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="cargarDatosBase()">Actualizar Datos de la Nube</button>
             <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
