@@ -183,7 +183,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyEmTeBwEH7IVy3f6irw_ATfrKxQPhF5c5cHOGAFlb5ThV4a2Sc1TcWollvzfA_jhFI3w/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbx3JMCrjbL0yjEkt1wK2FC-Y0VvMGWoTiHxRXwpFJTFyNMtBDulZ_W5kL3V9aVnYMQupA/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -294,15 +294,54 @@
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
                 if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-                // Tabla Pedidos Admin
-                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha/Hora</th><th>Cliente</th><th>ID</th><th>Sucursal</th><th>Dirección</th><th>Teléfono</th><th>Ciudad</th><th>Correo</th><th>Producto</th><th>EAN</th><th>Cant</th><th>V.Uni</th><th>Total</th><th>Estado</th><th>Vendedor</th><th>Tipo</th><th>Acción</th></tr>";
+                // Tabla Pedidos Admin (Agrupada visualmente)
+                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acciones de Despacho</th></tr>";
                 const listaPedidos = data.pedidos || [];
+                const pedidosAgrupados = {};
+
                 listaPedidos.forEach((p, idx) => {
-                    let est = p[14] || "ingresado";
-                    let btn = (est !== "despachado" && est !== "entregado") 
-                        ? `<button class="btn-action" onclick="despacharPedido(${idx}, '${p[10]}', ${p[11]}, '${p[9]}')">Despachar</button>` 
-                        : "Completado";
-                    htmlPedidos += `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td><td>${p[9]}</td><td>${p[10]}</td><td>${p[11]}</td><td>${p[12]}</td><td>${p[13]}</td><td><strong>${est}</strong></td><td>${p[15]}</td><td>${p[16]}</td><td>${btn}</td></tr>`;
+                    const numPedido = p[0];
+                    if (!pedidosAgrupados[numPedido]) {
+                        pedidosAgrupados[numPedido] = {
+                            fecha: p[1],
+                            cliente: p[2],
+                            estado: p[14] || "ingresado",
+                            productosHtml: "",
+                            totalPedido: 0,
+                            itemsFilaOriginal: []
+                        };
+                    }
+                    
+                    let cant = p[11] || 0;
+                    let nombreProd = p[9] || "";
+                    let totalItem = parseFloat(p[13]) || 0;
+                    
+                    pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
+                    pedidosAgrupados[numPedido].totalPedido += totalItem;
+                    pedidosAgrupados[numPedido].itemsFilaOriginal.push({ idx: idx, ean: p[10], cant: cant, prod: nombreProd });
+                });
+
+                Object.keys(pedidosAgrupados).forEach(numPedido => {
+                    let ped = pedidosAgrupados[numPedido];
+                    let botonesAccion = "";
+                    
+                    if (ped.estado !== "despachado" && ped.estado !== "entregado") {
+                        ped.itemsFilaOriginal.forEach(item => {
+                            botonesAccion += `<button class="btn-action" style="margin-bottom:4px; width:100%;" onclick="despacharPedido(${item.idx}, '${item.ean}', ${item.cant}, '${item.prod}')">Despachar: ${item.prod}</button><br>`;
+                        });
+                    } else {
+                        botonesAccion = "Completado";
+                    }
+
+                    htmlPedidos += `<tr>
+                        <td>${numPedido}</td>
+                        <td>${ped.fecha}</td>
+                        <td>${ped.cliente}</td>
+                        <td>${ped.productosHtml}</td>
+                        <td>$${ped.totalPedido}</td>
+                        <td><strong>${ped.estado}</strong></td>
+                        <td>${botonesAccion}</td>
+                    </tr>`;
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
                 // Tabla Prod. Terminados 
@@ -424,18 +463,15 @@
                 cantidad: document.getElementById('ins_cantidad').value 
             });
         }
-        async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if (confirm("¿Deseas despachar este pedido? Se actualizará el inventario y se generará la remisión.")) {
+        async function despacharPedido(numPedido, itemsDelPedido) {
+            if (confirm("¿Deseas despachar todos los productos de este pedido? Se actualizará el inventario y se generará la remisión.")) {
                 await enviarDatos({ 
                     accion: "despachar_pedido", 
-                    fila: indexFila + 2, 
-                    codigoEan: ean, 
-                    cantidad: cantidad, 
-                    producto: producto 
+                    numeroPedido: numPedido,
+                    itemsDespacho: itemsDelPedido
                 });
             }
-        }
-        function iniciarEscanner() {
+        }        function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
                 (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, () => {} 
