@@ -269,18 +269,83 @@
         }
 
         function cambiarPestaña(pestaña) {
-        document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-        document.getElementById('sec-' + pestaña).classList.remove('hidden');
-        document.getElementById('btn-tab-' + pestaña).classList.add('active');
-        document.getElementById('scan_feedback').innerText = ""; 
-        if (pestaña !== 'inventario') { detenerEscanner(); }
-        
-        // Carga los datos cuando entras a Estadísticas
-        if (pestaña === 'estadisticas') { 
-            cargarEstadisticas(); 
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.getElementById('sec-' + pestaña).classList.remove('hidden');
+            document.getElementById('btn-tab-' + pestaña).classList.add('active');
+            document.getElementById('scan_feedback').innerText = ""; 
+            if (pestaña !== 'inventario') { detenerEscanner(); }
+            
+            if (pestaña === 'estadisticas') { 
+                cargarEstadisticas(); 
+            }
         }
-    }
+
+        async function cargarEstadisticas() {
+            try {
+                document.getElementById('kpi-top-productos').innerHTML = "<li>Cargando datos acumulados...</li>";
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_estadisticas&_ts=" + new Date().getTime());
+                const datos = res.ok ? await res.json() : [];
+
+                if (!Array.isArray(datos) || datos.length === 0) {
+                    document.getElementById('kpi-ventas').innerText = "$0";
+                    document.getElementById('kpi-pedidos').innerText = "0";
+                    document.getElementById('kpi-top-productos').innerHTML = "<li>No hay registros en acumulados.</li>";
+                    return;
+                }
+
+                let totalVentas = 0;
+                let pedidosUnicos = new Set();
+                let conteoProductos = {};
+
+                datos.forEach(fila => {
+                    let numPedido = fila[0];
+                    let producto = fila[9];
+                    let cantidad = parseFloat(fila[11]) || 0;
+                    let subtotal = parseFloat(fila[13]) || 0;
+
+                    if (numPedido) pedidosUnicos.add(numPedido);
+                    totalVentas += subtotal;
+
+                    if (producto) {
+                        conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
+                    }
+                });
+
+                document.getElementById('kpi-ventas').innerText = "$" + totalVentas.toLocaleString('es-CO');
+                document.getElementById('kpi-pedidos').innerText = pedidosUnicos.size;
+
+                let topProductos = Object.entries(conteoProductos)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+
+                if (topProductos.length === 0) {
+                    document.getElementById('kpi-top-productos').innerHTML = "<li>Sin productos registrados</li>";
+                } else {
+                    let htmlTop = "";
+                    topProductos.forEach(([prod, cant], index) => {
+                        htmlTop += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
+                    });
+                    document.getElementById('kpi-top-productos').innerHTML = htmlTop;
+                }
+            } catch (e) {
+                console.error("Error al cargar estadísticas:", e);
+                document.getElementById('kpi-top-productos').innerHTML = "<li>Error al consultar la base de datos</li>";
+            }
+        }
+
+        async function realizarCierreMes() {
+            if (confirm("¿Estás seguro de realizar el cierre? Se eliminarán de la vista principal únicamente los pedidos despachados o entregados, manteniendo el historial en acumulados.")) {
+                await enviarDatos({ accion: "limpiar_pedidos_mes" });
+                alert("Cierre de mes completado.");
+                cargarEstadisticas();
+            }
+        }
+
+        function descargarInformeCSV() {
+            alert("Función de descarga en construcción.");
+        }
+
 
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
