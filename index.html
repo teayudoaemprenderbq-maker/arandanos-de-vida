@@ -41,8 +41,6 @@
         .admin-section.active-sub { display: block; }
         .product-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr 1fr 1fr auto; gap: 0.5rem; align-items: end; margin-bottom: 0.5rem; background: #f8fafc; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; }
         #scan_feedback { text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 10px; min-height: 1.2em; }
-        
-        /* Estilos del pie de página para tu logo */
         .developer-credit { text-align: center; padding: 2rem 1rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
         .developer-credit p { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .developer-credit img { height: 45px; object-fit: contain; }
@@ -117,6 +115,7 @@
             </div>
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
         </section>
+
         <!-- PESTAÑA ESCÁNER -->
         <section id="sec-inventario" class="card hidden">
             <h3>Lector de Códigos (Inventario)</h3> 
@@ -144,6 +143,7 @@
                 </div>
             </div>
         </section>
+
         <!-- PESTAÑA INSUMOS -->
         <section id="sec-insumos" class="card hidden">
             <h3>Control de Insumos</h3> 
@@ -159,10 +159,10 @@
             <div class="form-group"><label>Cantidad</label><input type="number" id="ins_cantidad"></div>
             <button class="btn-submit" onclick="guardarInsumo()">Guardar Movimiento</button>
         </section>
+
         <!-- PESTAÑA ADMIN -->
         <section id="sec-admin" class="card hidden">
             <h3>Panel Administrativo</h3> 
-            <!-- BOTÓN ACTUALIZADO PARA EVITAR CONFLICTOS -->
             <button id="btn-actualizar" class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="forzarActualizacion()">Actualizar Datos de la Nube</button>
             
             <div class="admin-nav">
@@ -175,7 +175,6 @@
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
         
-        <!-- SECCIÓN DE TU LOGOTIPO -->
         <footer class="developer-credit">
             <p>Plataforma desarrollada por</p>
             <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador">
@@ -183,30 +182,26 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyv7EfnvOC4OW0GZDNBqIo0UTEAOnbuWzqfltx_HUDA7Zngmv4tAzEgt6JxXVLUP1gp9w/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycby-B5CZV7wcDJbz4yzC0GfW7FX4gk175IH4uKRVga-CIf9gsOCnk4RHo29dfo6sYmFgTg/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
-        let intervaloActualizacion; // Variable global para controlar el temporizador
+        let intervaloActualizacion;
 
         function inicializarApp() {
             generarNumeroPedido();
             cargarDatosBase();
             cargarInsumosFetch(); 
-            // NUEVO: Incrementamos a 60 segundos (60000ms) para evitar bloqueos del servidor
             intervaloActualizacion = setInterval(cargarDatosBase, 60000);
         }
 
-        // NUEVO: Función para actualización manual segura
         async function forzarActualizacion() {
             const btn = document.getElementById('btn-actualizar');
-            btn.innerText = "Actualizando datos..."; // Indicador visual
-            btn.disabled = true; // Previene doble clic
-            
-            clearInterval(intervaloActualizacion); // Pausa el ciclo automático temporalmente
-            await cargarDatosBase(); // Ejecuta la descarga de datos
-            intervaloActualizacion = setInterval(cargarDatosBase, 60000); // Reanuda el ciclo automático
-            
+            btn.innerText = "Actualizando datos...";
+            btn.disabled = true;
+            clearInterval(intervaloActualizacion);
+            await cargarDatosBase();
+            intervaloActualizacion = setInterval(cargarDatosBase, 60000);
             btn.innerText = "Actualizar Datos de la Nube";
             btn.disabled = false;
             alert("Los datos se han sincronizado correctamente.");
@@ -222,6 +217,7 @@
             const seg = String(ahora.getSeconds()).padStart(2, '0');
             document.getElementById('ped_nro').value = `PED-${anio}${mes}${dia}-${hora}${min}${seg}`;
         }
+
         function cambiarPestaña(pestaña) {
             document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
@@ -230,12 +226,14 @@
             document.getElementById('scan_feedback').innerText = ""; 
             if (pestaña !== 'inventario') { detenerEscanner(); }
         }
+
         function cambiarSubPestaña(subId) {
             document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active-sub'));
             document.querySelectorAll('.admin-nav button').forEach(el => el.classList.remove('active-sub'));
             document.getElementById(subId).classList.add('active-sub');
             document.getElementById('subtab-' + subId).classList.add('active-sub');
         }
+
         function mostrarFormularioClienteNuevo() {
             const seccion = document.getElementById('seccion-nuevo-cliente');
             seccion.classList.toggle('hidden');
@@ -243,6 +241,7 @@
                 document.getElementById('nuevo_cli_nit').value = document.getElementById('ped_identificacion').value;
             }
         }
+
         async function guardarClienteNuevo() {
             let nombreCliente = document.getElementById('ped_cliente').value;
             let nit = document.getElementById('nuevo_cli_nit').value;
@@ -270,6 +269,7 @@
             document.getElementById('ped_ciudad').value = ciudad;
             document.getElementById('seccion-nuevo-cliente').classList.add('hidden');
         }
+
         async function cargarDatosBase() {
             try {
                 const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
@@ -282,6 +282,7 @@
                     if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
                 });
                 document.getElementById('lista-clientes').innerHTML = dataCli;
+                
                 baseDatosProductos = data.productos || [];
                 let dataProd = "";
                 let selectManual = "<option value=''>Seleccione un producto...</option>";
@@ -294,12 +295,13 @@
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
                 if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-                // Tabla Pedidos Admin (Agrupada visualmente con estado por producto)
-                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acciones de Despacho</th></tr>";
+                
+                // Tabla Pedidos Admin - Agrupada por número de pedido con UN SOLO BOTÓN GLOBAL DE DESPACHO
+                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
                 const listaPedidos = data.pedidos || [];
                 const pedidosAgrupados = {};
-
-                listaPedidos.forEach((p, idx) => {
+                
+                listaPedidos.forEach((p) => {
                     const numPedido = p[0];
                     if (!pedidosAgrupados[numPedido]) {
                         pedidosAgrupados[numPedido] = {
@@ -307,36 +309,31 @@
                             cliente: p[2],
                             productosHtml: "",
                             totalPedido: 0,
-                            itemsFilaOriginal: []
+                            estadoGeneral: p[14] || "ingresado",
+                            items: []
                         };
                     }
                     
                     let cant = p[11] || 0;
                     let nombreProd = p[9] || "";
                     let totalItem = parseFloat(p[13]) || 0;
-                    let est = p[14] || "ingresado";
                     
                     pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
                     pedidosAgrupados[numPedido].totalPedido += totalItem;
-                    pedidosAgrupados[numPedido].itemsFilaOriginal.push({ idx: idx, ean: p[10], cant: cant, prod: nombreProd, estado: est });
+                    pedidosAgrupados[numPedido].items.push({
+                        ean: p[10],
+                        prod: nombreProd,
+                        cant: cant
+                    });
                 });
 
                 Object.keys(pedidosAgrupados).forEach(numPedido => {
                     let ped = pedidosAgrupados[numPedido];
-                    let botonesAccion = "";
-                    let todosCompletados = true;
+                    let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
                     
-                    ped.itemsFilaOriginal.forEach(item => {
-                        let nombreLimpio = item.prod.replace(/'/g, "");
-                        if (item.estado !== "despachado" && item.estado !== "entregado") {
-                            todosCompletados = false;
-                            botonesAccion += `<button class="btn-action" style="margin-bottom:4px; width:100%;" onclick="despacharPedido(${item.idx}, '${item.ean}', ${item.cant}, '${nombreLimpio}')">Despachar: ${nombreLimpio}</button><br>`;
-                        } else {
-                            botonesAccion += `<span style="color: #16a34a; font-weight: bold;">✔ Completado: ${nombreLimpio}</span><br>`;
-                        }
-                    });
-
-                    let estadoGeneral = todosCompletados ? "Despachado" : "Pendiente";
+                    let botonAccion = esDespachado 
+                        ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
+                        : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
 
                     htmlPedidos += `<tr>
                         <td>${numPedido}</td>
@@ -344,11 +341,12 @@
                         <td>${ped.cliente}</td>
                         <td>${ped.productosHtml}</td>
                         <td>$${ped.totalPedido}</td>
-                        <td><strong>${estadoGeneral}</strong></td>
-                        <td>${botonesAccion}</td>
+                        <td><strong>${ped.estadoGeneral}</strong></td>
+                        <td>${botonAccion}</td>
                     </tr>`;
                 });
                 document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+                
                 // Tabla Prod. Terminados 
                 let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
                 const listaInventario = data.inventario || [];
@@ -356,6 +354,7 @@
                     htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td><strong>${i[6]}</strong></td><td>${i[7]}</td><td><strong style="color:var(--primary);">${i[8]}</strong></td></tr>`;
                 });
                 document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+                
                 // Tabla Insumos 
                 let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
                 const listaInsumosPage = data.insumos || [];
@@ -365,6 +364,7 @@
                 document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
             } catch(e) { console.error("Error al cargar los datos:", e); }
         }
+
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
@@ -379,6 +379,7 @@
             `;
             contenedor.appendChild(div);
         }
+
         function actualizarFilaProducto(inputElement) {
             const row = inputElement.closest('.product-row');
             const nombreProd = inputElement.value;
@@ -389,6 +390,7 @@
                 calcularTotalesPedido();
             }
         }
+
         function calcularTotalesPedido() {
             const filas = document.querySelectorAll('.product-row');
             let granTotal = 0;
@@ -401,6 +403,7 @@
             });
             document.getElementById('gran_total').innerText = granTotal;
         }
+
         function autocompletarCliente() {
             let nombre = document.getElementById('ped_cliente').value;
             let c = baseDatosClientes.find(cli => cli[0] === nombre);
@@ -412,6 +415,7 @@
                 document.getElementById('ped_ciudad').value = c[5] || "";
             }
         }
+
         async function enviarDatos(datos) {
             try {
                 await fetch(URL_GOOGLE_SCRIPT, { 
@@ -426,6 +430,7 @@
                 alert("Ocurrió un error al enviar los datos."); 
             }
         }
+
         function guardarPedido() {
             const filas = document.querySelectorAll('.product-row');
             let productosArray = [];
@@ -459,6 +464,7 @@
                 productosArray: productosArray
             });
         }
+
         function guardarInsumo() {
             enviarDatos({ 
                 accion: "guardar_insumo", 
@@ -468,28 +474,31 @@
                 cantidad: document.getElementById('ins_cantidad').value 
             });
         }
-        async function despacharPedido(indexFila, ean, cantidad, producto) {
-            if (confirm("¿Deseas despachar este producto? Se actualizará el inventario y se generará la remisión.")) {
+
+        // Función modificada para despachar todo el pedido en una sola acción global
+        async function despacharPedidoCompleto(numeroPedido) {
+            if (confirm(`¿Deseas despachar el pedido ${numeroPedido}? Se actualizará el inventario de todos sus productos y se generará la remisión consolidada.`)) {
                 await enviarDatos({ 
-                    accion: "despachar_pedido", 
-                    fila: indexFila, 
-                    codigoEan: ean, 
-                    cantidad: cantidad, 
-                    producto: producto 
+                    accion: "despachar_pedido_completo", 
+                    numeroPedido: numeroPedido 
                 });
             }
         }
-               function iniciarEscanner() {
+
+        function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
                 (codigo) => { detenerEscanner(); procesarCodigoEAN(codigo); }, () => {} 
             ).catch(() => { alert("No se pudo activar la cámara."); });
         }
+
         function detenerEscanner() { if (html5QrCode) { html5QrCode.stop().catch(() => {}); } }
+
         function ingresoManualProducto() {
             let ean = document.getElementById('manual_prod_select').value;
             if (ean) { procesarCodigoEAN(ean); } else { alert("Seleccione un producto."); }
         }
+
         function procesarCodigoEAN(codigo) {
             const producto = baseDatosProductos.find(x => String(x[0]) === String(codigo));
             if (producto) {
@@ -507,6 +516,7 @@
                 }
             } else { alert("Código EAN no encontrado."); }
         }
+
         function cargarInsumosFetch() {
             fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_insumos_maestros")
                 .then(res => res.json())
