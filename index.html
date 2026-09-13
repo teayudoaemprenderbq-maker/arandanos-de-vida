@@ -67,11 +67,11 @@
     <header><h2>Arándanos de Vida</h2></header>
     
     <nav>
-        <button id="btn-tab-pedidos" class="active" onclick="cambiarPestaña('pedidos')">Pedidos</button>
-        <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear</button>
-        <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
-        <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Admin</button>
-        <button id="btn-tab-estadisticas" onclick="cambiarPestaña('estadisticas')">Estadísticas</button>
+        <button id="btn-tab-pedidos" class="active" onclick="('pedidos')">Pedidos</button>
+        <button id="btn-tab-inventario" onclick="('inventario')">Escanear</button>
+        <button id="btn-tab-insumos" onclick="('insumos')">Insumos</button>
+        <button id="btn-tab-admin" onclick="('admin')">Admin</button>
+        <button id="btn-tab-estadisticas" onclick="('estadisticas')">Estadísticas</button>
     </nav>
     <main>
         <!-- PESTAÑA PEDIDOS -->
@@ -276,8 +276,10 @@
             document.getElementById('scan_feedback').innerText = ""; 
             if (pestaña !== 'inventario') { detenerEscanner(); }
             
-            // LÍNEA NUEVA: Carga los datos cuando entras a Estadísticas
-            if (pestaña === 'estadisticas') { cargarEstadisticas(); 
+            // Carga los datos cuando entras a Estadísticas
+            if (pestaña === 'estadisticas') { 
+                cargarEstadisticas(); 
+            }
         }
 
         function cambiarSubPestaña(subId) {
