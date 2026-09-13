@@ -44,6 +44,23 @@
         .developer-credit { text-align: center; padding: 2rem 1rem; margin-top: 2rem; border-top: 1px solid #e2e8f0; }
         .developer-credit p { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .developer-credit img { height: 45px; object-fit: contain; }
+        /* --- ESTILOS DEL PANEL DE ESTADÍSTICAS --- */
+        .cabecera-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+        .grupo-botones button { padding: 10px 16px; margin-left: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; color: #fff; transition: background-color 0.2s; }
+        .btn-descarga { background-color: #0ea5e9; } 
+        .btn-descarga:hover { background-color: #0284c7; }
+        .btn-cierre { background-color: #dc2626; }
+        .btn-cierre:hover { background-color: #b91c1c; }
+        .grid-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .tarjeta-kpi { background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; }
+        .tarjeta-kpi h3 { font-size: 13px; text-transform: uppercase; color: #64748b; margin: 0 0 8px 0; border-bottom: none; padding-bottom: 0; }
+        .tarjeta-kpi p { font-size: 28px; font-weight: bold; margin: 0; color: var(--primary-dark); }
+        .tarjeta-top { grid-column: span 2; text-align: left; }
+        .lista-top { list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--text-main); }
+        .lista-top li { padding: 6px 0; border-bottom: 1px solid #e2e8f0; }
+        .lista-top li:last-child { border-bottom: none; }
+        .contenedor-grafico { background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; height: 320px; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+        @media (max-width: 768px) { .tarjeta-top { grid-column: span 1; } }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -54,6 +71,7 @@
         <button id="btn-tab-inventario" onclick="cambiarPestaña('inventario')">Escanear</button>
         <button id="btn-tab-insumos" onclick="cambiarPestaña('insumos')">Insumos</button>
         <button id="btn-tab-admin" onclick="cambiarPestaña('admin')">Admin</button>
+        <button id="btn-tab-estadisticas" onclick="cambiarPestaña('estadisticas')">Estadísticas</button>
     </nav>
     <main>
         <!-- PESTAÑA PEDIDOS -->
@@ -174,7 +192,39 @@
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
-        
+        <!-- PESTAÑA ESTADÍSTICAS -->
+        <section id="sec-estadisticas" class="card hidden">
+            <div class="cabecera-panel">
+                <h3 style="border: none; margin: 0; padding: 0;">Panel de Estadísticas</h3>
+                <div class="grupo-botones">
+                    <button onclick="descargarInformeCSV()" class="btn-descarga">Descargar Informe</button>
+                    <button onclick="realizarCierreMes()" class="btn-cierre">Cierre de Mes</button>
+                </div>
+            </div>
+
+            <!-- Tarjetas de KPIs -->
+            <div class="grid-kpis">
+                <div class="tarjeta-kpi">
+                    <h3>Ventas del Mes</h3>
+                    <p id="kpi-ventas">$0</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <h3>Cantidad Pedidos</h3>
+                    <p id="kpi-pedidos">0</p>
+                </div>
+                <div class="tarjeta-kpi tarjeta-top">
+                    <h3>Top 3 Productos Más Vendidos</h3>
+                    <ul id="kpi-top-productos" class="lista-top">
+                        <li>Esperando datos...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contenedor para Gráficos -->
+            <div class="contenedor-grafico">
+                <p>Aquí integraremos el canvas de Chart.js para las gráficas</p>
+            </div>
+        </section>
         <footer class="developer-credit">
             <p>Plataforma desarrollada por</p>
             <img src="https://static.wixstatic.com/media/d0ce54_c999d1aa9976438a98b0f5b2157b7adc~mv2.png" alt="Logo Desarrollador">
@@ -525,6 +575,18 @@
                     lista.forEach(i => { options += `<option value="${i}">`; });
                     document.getElementById('lista-insumos-datalist').innerHTML = options;
                 }).catch(() => {});
+        }
+        // --- FUNCIONES DEL PANEL DE ESTADÍSTICAS ---
+        function realizarCierreMes() {
+            if(confirm("¿Estás seguro de realizar el cierre? Solo se eliminarán los pedidos despachados en la hoja principal.")) {
+                alert("Enviando solicitud de cierre al servidor... (Lógica en construcción)");
+                // Aquí conectaremos con Google Apps Script más adelante
+            }
+        }
+
+        function descargarInformeCSV() {
+            alert("Función de descarga en construcción.");
+            // Aquí agregaremos la lógica para descargar el CSV más adelante
         }
     </script>
 </body>
