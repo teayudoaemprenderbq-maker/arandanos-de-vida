@@ -223,30 +223,6 @@
             <div class="contenedor-grafico" style="position: relative; height:280px; width:100%;">
                 <canvas id="graficoVentas"></canvas>
             </div>
-         </div>
-
-            <!-- Tarjetas de KPIs -->
-            <div class="grid-kpis">
-                <div class="tarjeta-kpi">
-                    <h3>Ventas del Mes</h3>
-                    <p id="kpi-ventas">$0</p>
-                </div>
-                <div class="tarjeta-kpi">
-                    <h3>Cantidad Pedidos</h3>
-                    <p id="kpi-pedidos">0</p>
-                </div>
-                <div class="tarjeta-kpi tarjeta-top">
-                    <h3>Top 3 Productos Más Vendidos</h3>
-                    <ul id="kpi-top-productos" class="lista-top">
-                        <li>Esperando datos...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Contenedor para Gráficos -->
-            <div class="contenedor-grafico">
-                <p>Aquí integraremos el canvas de Chart.js para las gráficas</p>
-            </div>
         </section>
         <footer class="developer-credit">
             <p>Plataforma desarrollada por</p>
@@ -255,7 +231,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyqYrR2ZvST9bP8sJ0W3BeTYV9rvfCPtJ44TiRWuw41P0ZKJvNaAruM-I2CGPtYIEgLBQ/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyJxA7T5Inqyzlxm5bT1E_6MrkdtEafCt3IshD_JiA3uo54soEQizqAbGg7Q-fNCwhzyA/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
