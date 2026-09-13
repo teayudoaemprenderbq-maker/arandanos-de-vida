@@ -331,95 +331,99 @@
                 const data = res.ok ? await res.json() : null; 
                 if (!data) return; 
                 
-                baseDatosClientes = data.clientes || [];
-                let dataCli = "";
-                baseDatosClientes.forEach(cli => {
-                    if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
-                });
-                document.getElementById('lista-clientes').innerHTML = dataCli;
-                
-                baseDatosProductos = data.productos || [];
-                let dataProd = "";
-                let selectManual = "<option value=''>Seleccione un producto...</option>";
-                baseDatosProductos.forEach(prod => { 
-                    if (prod && prod[1]) {
-                        dataProd += `<option value="${prod[1]}">`; 
-                        selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
-                    }
-                });
-                document.getElementById('lista-productos-datalist').innerHTML = dataProd;
-                document.getElementById('manual_prod_select').innerHTML = selectManual;
-                if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-                
-                // Tabla Pedidos Admin - Agrupada por número de pedido con UN SOLO BOTÓN GLOBAL DE DESPACHO
-                let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
-                const listaPedidos = data.pedidos || [];
-                const pedidosAgrupados = {};
-                
-                listaPedidos.forEach((p) => {
-                    const numPedido = p[0];
-                    if (!pedidosAgrupados[numPedido]) {
-                        pedidosAgrupados[numPedido] = {
-                            fecha: p[1],
-                            cliente: p[2],
-                            productosHtml: "",
-                            totalPedido: 0,
-                            estadoGeneral: p[14] || "ingresado",
-                            items: []
-                        };
-                    }
-                    
-                    let cant = p[11] || 0;
-                    let nombreProd = p[9] || "";
-                    let totalItem = parseFloat(p[13]) || 0;
-                    
-                    pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
-                    pedidosAgrupados[numPedido].totalPedido += totalItem;
-                    pedidosAgrupados[numPedido].items.push({
-                        ean: p[10],
-                        prod: nombreProd,
-                        cant: cant
+                // Carga de Clientes y Productos (Esencial para la pestaña Pedidos)
+                try {
+                    baseDatosClientes = data.clientes || [];
+                    let dataCli = "";
+                    baseDatosClientes.forEach(cli => {
+                        if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
                     });
-                });
-
-                Object.keys(pedidosAgrupados).forEach(numPedido => {
-                    let ped = pedidosAgrupados[numPedido];
-                    let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
+                    document.getElementById('lista-clientes').innerHTML = dataCli;
                     
-                    let botonAccion = esDespachado 
-                        ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
-                        : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
+                    baseDatosProductos = data.productos || [];
+                    let dataProd = "";
+                    let selectManual = "<option value=''>Seleccione un producto...</option>";
+                    baseDatosProductos.forEach(prod => { 
+                        if (prod && prod[1]) {
+                            dataProd += `<option value="${prod[1]}">`; 
+                            selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
+                        }
+                    });
+                    document.getElementById('lista-productos-datalist').innerHTML = dataProd;
+                    document.getElementById('manual_prod_select').innerHTML = selectManual;
+                    if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
+                } catch (errClientes) {
+                    console.error("Error al cargar clientes o productos:", errClientes);
+                }
+                
+                // Carga de Pedidos para el Panel Admin
+                try {
+                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+                    const listaPedidos = data.pedidos || [];
+                    const pedidosAgrupados = {};
+                    
+                    listaPedidos.forEach((p) => {
+                        const numPedido = p[0];
+                        if (!pedidosAgrupados[numPedido]) {
+                            pedidosAgrupados[numPedido] = {
+                                fecha: p[1],
+                                cliente: p[2],
+                                productosHtml: "",
+                                totalPedido: 0,
+                                estadoGeneral: p[14] || "ingresado",
+                                items: []
+                            };
+                        }
+                        let cant = p[11] || 0;
+                        let nombreProd = p[9] || "";
+                        let totalItem = parseFloat(p[13]) || 0;
+                        
+                        pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
+                        pedidosAgrupados[numPedido].totalPedido += totalItem;
+                    });
+                    Object.keys(pedidosAgrupados).forEach(numPedido => {
+                        let ped = pedidosAgrupados[numPedido];
+                        let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
+                        let botonAccion = esDespachado 
+                            ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
+                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
+                        htmlPedidos += `<tr>
+                            <td>${numPedido}</td>
+                            <td>${ped.fecha}</td>
+                            <td>${ped.cliente}</td>
+                            <td>${ped.productosHtml}</td>
+                            <td>$${ped.totalPedido}</td>
+                            <td><strong>${ped.estadoGeneral}</strong></td>
+                            <td>${botonAccion}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+                } catch (errPedidos) {
+                    console.error("Error al cargar la tabla de pedidos:", errPedidos);
+                }
+                
+                // Carga protegida de Inventario
+                try {
+                    let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+                    const listaInventario = data.inventario || [];
+                    listaInventario.forEach(i => {
+                        htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td><strong>${i[6]}</strong></td><td>${i[7]}</td><td><strong style="color:var(--primary);">${i[8]}</strong></td></tr>`;
+                    });
+                    document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+                } catch (e) {}
+                
+                // Carga protegida de Insumos
+                try {
+                    let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
+                    const listaInsumosPage = data.insumos || [];
+                    listaInsumosPage.forEach(is => {
+                        htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td><strong>${is[5]}</strong></td></tr>`;
+                    });
+                    document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+                } catch (e) {}
 
-                    htmlPedidos += `<tr>
-                        <td>${numPedido}</td>
-                        <td>${ped.fecha}</td>
-                        <td>${ped.cliente}</td>
-                        <td>${ped.productosHtml}</td>
-                        <td>$${ped.totalPedido}</td>
-                        <td><strong>${ped.estadoGeneral}</strong></td>
-                        <td>${botonAccion}</td>
-                    </tr>`;
-                });
-                document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
-                
-                // Tabla Prod. Terminados 
-                let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                const listaInventario = data.inventario || [];
-                listaInventario.forEach(i => {
-                    htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td><strong>${i[6]}</strong></td><td>${i[7]}</td><td><strong style="color:var(--primary);">${i[8]}</strong></td></tr>`;
-                });
-                document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
-                
-                // Tabla Insumos 
-                let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
-                const listaInsumosPage = data.insumos || [];
-                listaInsumosPage.forEach(is => {
-                    htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td><strong>${is[5]}</strong></td></tr>`;
-                });
-                document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-            } catch(e) { console.error("Error al cargar los datos:", e); }
+            } catch(e) { console.error("Error general al cargar los datos:", e); }
         }
-
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
