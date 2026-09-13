@@ -294,7 +294,7 @@
                 document.getElementById('lista-productos-datalist').innerHTML = dataProd;
                 document.getElementById('manual_prod_select').innerHTML = selectManual;
                 if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-                // Tabla Pedidos Admin (Agrupada visualmente)
+                // Tabla Pedidos Admin (Agrupada visualmente con estado por producto)
                 let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acciones de Despacho</th></tr>";
                 const listaPedidos = data.pedidos || [];
                 const pedidosAgrupados = {};
@@ -305,7 +305,6 @@
                         pedidosAgrupados[numPedido] = {
                             fecha: p[1],
                             cliente: p[2],
-                            estado: p[14] || "ingresado",
                             productosHtml: "",
                             totalPedido: 0,
                             itemsFilaOriginal: []
@@ -315,25 +314,29 @@
                     let cant = p[11] || 0;
                     let nombreProd = p[9] || "";
                     let totalItem = parseFloat(p[13]) || 0;
+                    let est = p[14] || "ingresado";
                     
                     pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
                     pedidosAgrupados[numPedido].totalPedido += totalItem;
-                    pedidosAgrupados[numPedido].itemsFilaOriginal.push({ idx: idx, ean: p[10], cant: cant, prod: nombreProd });
+                    pedidosAgrupados[numPedido].itemsFilaOriginal.push({ idx: idx, ean: p[10], cant: cant, prod: nombreProd, estado: est });
                 });
 
                 Object.keys(pedidosAgrupados).forEach(numPedido => {
                     let ped = pedidosAgrupados[numPedido];
                     let botonesAccion = "";
+                    let todosCompletados = true;
                     
-                    if (ped.estado !== "despachado" && ped.estado !== "entregado") {
-                        ped.itemsFilaOriginal.forEach(item => {
-                            // Limpiamos el nombre del producto para evitar errores en el botón
-                            let nombreLimpio = item.prod.replace(/'/g, "");
+                    ped.itemsFilaOriginal.forEach(item => {
+                        let nombreLimpio = item.prod.replace(/'/g, "");
+                        if (item.estado !== "despachado" && item.estado !== "entregado") {
+                            todosCompletados = false;
                             botonesAccion += `<button class="btn-action" style="margin-bottom:4px; width:100%;" onclick="despacharPedido(${item.idx}, '${item.ean}', ${item.cant}, '${nombreLimpio}')">Despachar: ${nombreLimpio}</button><br>`;
-                        });
-                    } else {
-                        botonesAccion = "Completado";
-                    }
+                        } else {
+                            botonesAccion += `<span style="color: #16a34a; font-weight: bold;">✔ Completado: ${nombreLimpio}</span><br>`;
+                        }
+                    });
+
+                    let estadoGeneral = todosCompletados ? "Despachado" : "Pendiente";
 
                     htmlPedidos += `<tr>
                         <td>${numPedido}</td>
@@ -341,7 +344,7 @@
                         <td>${ped.cliente}</td>
                         <td>${ped.productosHtml}</td>
                         <td>$${ped.totalPedido}</td>
-                        <td><strong>${ped.estado}</strong></td>
+                        <td><strong>${estadoGeneral}</strong></td>
                         <td>${botonesAccion}</td>
                     </tr>`;
                 });
@@ -465,14 +468,17 @@
                 cantidad: document.getElementById('ins_cantidad').value 
             });
         }
-        async function despacharPedido(numPedido, itemsDelPedido) {
-            if (confirm("¿Deseas despachar todos los productos de este pedido? Se actualizará el inventario y se generará la remisión.")) {
+        async function despacharPedido(indexFila, ean, cantidad, producto) {
+            if (confirm("¿Deseas despachar este producto? Se actualizará el inventario y se generará la remisión.")) {
                 await enviarDatos({ 
                     accion: "despachar_pedido", 
-                    numeroPedido: numPedido,
-                    itemsDespacho: itemsDelPedido
+                    fila: indexFila, 
+                    codigoEan: ean, 
+                    cantidad: cantidad, 
+                    producto: producto 
                 });
             }
+        }
         }        function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
