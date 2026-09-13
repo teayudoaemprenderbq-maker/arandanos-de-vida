@@ -232,7 +232,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwst6uIwu5s-UABSDOrDQamnO7FE_g6F41WNtM97ktH3JyBGevFJ76kl0Rt7z4xoB-IUA/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyqYrR2ZvST9bP8sJ0W3BeTYV9rvfCPtJ44TiRWuw41P0ZKJvNaAruM-I2CGPtYIEgLBQ/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -275,6 +275,9 @@
             document.getElementById('btn-tab-' + pestaña).classList.add('active');
             document.getElementById('scan_feedback').innerText = ""; 
             if (pestaña !== 'inventario') { detenerEscanner(); }
+            
+            // LÍNEA NUEVA: Carga los datos cuando entras a Estadísticas
+            if (pestaña === 'estadisticas') { cargarEstadisticas(); }
         }
 
         function cambiarSubPestaña(subId) {
