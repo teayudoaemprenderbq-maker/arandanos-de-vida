@@ -327,7 +327,9 @@
                     
                     if (ped.estado !== "despachado" && ped.estado !== "entregado") {
                         ped.itemsFilaOriginal.forEach(item => {
-                            botonesAccion += `<button class="btn-action" style="margin-bottom:4px; width:100%;" onclick="despacharPedido(${item.idx}, '${item.ean}', ${item.cant}, '${item.prod}')">Despachar: ${item.prod}</button><br>`;
+                            // Limpiamos el nombre del producto para evitar errores en el botón
+                            let nombreLimpio = item.prod.replace(/'/g, "");
+                            botonesAccion += `<button class="btn-action" style="margin-bottom:4px; width:100%;" onclick="despacharPedido(${item.idx}, '${item.ean}', ${item.cant}, '${nombreLimpio}')">Despachar: ${nombreLimpio}</button><br>`;
                         });
                     } else {
                         botonesAccion = "Completado";
