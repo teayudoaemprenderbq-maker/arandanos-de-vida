@@ -231,7 +231,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzFTDNUAIBfReE-DBwNA5oqrMIMSfPTrxdZPANXaA9u3d1y6MctIl3-K8GpJo39QggmXw/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbydPC4eiVT2vBEdSD3ppdnajMZbAI0HIve9PhYsKrmsrzXZHHMHTBD_ogGCTKbzLnMz3g/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -680,14 +680,7 @@
                     document.getElementById('lista-insumos-datalist').innerHTML = options;
                 }).catch(() => {});
         }
-        // --- FUNCIONES DEL PANEL DE ESTADÍSTICAS ---
-        function realizarCierreMes() {
-            if(confirm("¿Estás seguro de realizar el cierre? Solo se eliminarán los pedidos despachados en la hoja principal.")) {
-                alert("Enviando solicitud de cierre al servidor... (Lógica en construcción)");
-                // Aquí conectaremos con Google Apps Script más adelante
-            }
-        }
-
+        
         function descargarInformeCSV() {
             alert("Función de descarga en construcción.");
             console.log("Panel de estadísticas cargado correctamente.");
