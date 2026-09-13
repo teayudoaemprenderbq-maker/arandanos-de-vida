@@ -304,6 +304,8 @@
             }
         }
 
+        let miGraficoVentas = null;
+
         async function cargarEstadisticas() {
             try {
                 document.getElementById('kpi-top-productos').innerHTML = "<li>Cargando datos acumulados...</li>";
@@ -351,12 +353,41 @@
                     });
                     document.getElementById('kpi-top-productos').innerHTML = htmlTop;
                 }
+
+                // Renderizar Gráfica con Chart.js
+                const ctx = document.getElementById('graficoVentas').getContext('2d');
+                const labelsGrafico = Object.keys(conteoProductos);
+                const valoresGrafico = Object.values(conteoProductos);
+
+                if (miGraficoVentas) {
+                    miGraficoVentas.destroy();
+                }
+
+                miGraficoVentas = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsGrafico,
+                        datasets: [{
+                            label: 'Unidades Vendidas',
+                            data: valoresGrafico,
+                            backgroundColor: '#5b21b6',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+
             } catch (e) {
                 console.error("Error al cargar estadísticas:", e);
                 document.getElementById('kpi-top-productos').innerHTML = "<li>Error al consultar la base de datos</li>";
             }
         }
-
         async function realizarCierreMes() {
             if (confirm("¿Estás seguro de realizar el cierre? Se eliminarán de la vista principal únicamente los pedidos despachados o entregados, manteniendo el historial en acumulados.")) {
                 await enviarDatos({ accion: "limpiar_pedidos_mes" });
