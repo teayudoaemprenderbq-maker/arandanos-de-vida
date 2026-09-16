@@ -231,43 +231,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "let inventarioProcesado = [];
-        inventarioCrudo.forEach(row => {
-          let fecha = row[0];
-          let ean = String(row[1] || "").trim();
-          let nombreProd = row[2];
-          let invInicial = Number(row[3]) || 0;
-          let entradas = Number(row[4]) || 0;
-          let salidas = Number(row[5]) || 0;
-          let salidasD = Number(row[6]) || 0; // Se captura la nueva columna Salidas D
-          
-          let enPedido = 0;
-          p.forEach(ped => {
-            let estadoPed = ped[14] || "";
-            let eanPed = String(ped[10] || "").trim();
-            let cantPed = Number(ped[11]) || 0;
-            if (eanPed === ean && estadoPed !== "despachado" && estadoPed !== "entregado") {
-              enPedido += cantPed;
-            }
-          });
-          
-          // Actualizamos la fórmula del saldo para restar ambas columnas de salidas
-          let saldoActual = invInicial + entradas - salidas - salidasD;
-          let disponible = saldoActual - enPedido;
-          
-          inventarioProcesado.push([
-            fecha || new Date().toLocaleDateString('es-CO'),
-            ean,
-            nombreProd,
-            invInicial,
-            entradas,
-            salidas,
-            salidasD,     // Agregamos Salidas D al array de respuesta
-            saldoActual,
-            enPedido,
-            disponible
-          ]);
-        });"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxp1d9nmcg3q6pyinmm0ub7ERUspmyq76q0bzgdwH8GxnKfbkX5ZAs2bgvpSj8XeDaVBA/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
