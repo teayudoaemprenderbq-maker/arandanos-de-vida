@@ -202,6 +202,28 @@
                     <button onclick="realizarCierreMes()" class="btn-cierre">Cierre de Mes</button>
                 </div>
             </div>
+
+            <!-- INICIO DEL PANEL DE FILTROS AÑADIDO -->
+            <div class="filtros-estadisticas" style="display: flex; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #cbd5e1;">
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Fecha Inicial:</label>
+                    <input type="date" id="filtro-fecha-inicio">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Fecha Final:</label>
+                    <input type="date" id="filtro-fecha-fin">
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label>Filtrar por Cliente:</label>
+                    <select id="filtro-cliente">
+                        <option value="TODOS">Todos los clientes</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-submit" style="margin-top: 0; padding: 0.6rem 1rem;" onclick="aplicarFiltrosEstadisticas()">Aplicar Filtros</button>
+                </div>
+            </div>
+            
             <!-- Tarjetas de KPIs -->
             <div class="grid-kpis">
                 <div class="tarjeta-kpi">
