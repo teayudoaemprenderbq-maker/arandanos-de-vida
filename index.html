@@ -253,17 +253,22 @@
             </div>
 
             <!-- Contenedor para Gráficos Avanzados -->
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
-                <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
-                <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme vs Consignaciones</h4>
-                <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoTiposPedido"></canvas></div>
-            </div>
-                <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
-                    <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas Totales por Cliente</h4>
-                    <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientes"></canvas></div>
-                </div>
-            </div>
-        </section>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme vs Consignaciones</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoTiposPedido"></canvas></div>
+        </div>
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme por Cliente</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientesFirme"></canvas></div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+        <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+            <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Consignaciones por Cliente</h4>
+            <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientesConsignacion"></canvas></div>
+        </div>
+    </div>        </section>
 
         <footer class="developer-credit">
             <p>Plataforma desarrollada por</p>
@@ -404,7 +409,7 @@
             
             pedidosMesFiltrados.forEach(fila => {
                 let valor = parseFloat(fila[13]) || 0;
-                let tipoPedido = String(fila[16] || "").trim(); // Columna 17: Tipo de Pedido
+                let tipoPedido = String(fila[16] || "").trim();
                 
                 if (tipoPedido === "Consignación") {
                     consignacionMes += valor;
@@ -426,22 +431,30 @@
             document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
             document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
 
-            // Procesar productos y clientes para las listas y gráficas
             let todosFiltrados = [...pedidosAcumuladosFiltrados, ...pedidosMesFiltrados];
             let conteoProductos = {};
-            let ventasPorCliente = {};
+            let ventasPorClienteFirme = {};
+            let ventasPorClienteConsignacion = {};
 
             todosFiltrados.forEach(fila => {
                 let cliente = fila[2] || "Desconocido";
                 let producto = fila[9]; 
                 let cantidad = parseFloat(fila[11]) || 0; 
                 let subtotal = parseFloat(fila[13]) || 0;
+                let tipoPedido = String(fila[16] || "").trim();
                 
                 if (producto) conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
-                if (cliente) ventasPorCliente[cliente] = (ventasPorCliente[cliente] || 0) + subtotal;
+                
+                if (cliente) {
+                    if (tipoPedido === "Consignación") {
+                        ventasPorClienteConsignacion[cliente] = (ventasPorClienteConsignacion[cliente] || 0) + subtotal;
+                    } else {
+                        ventasPorClienteFirme[cliente] = (ventasPorClienteFirme[cliente] || 0) + subtotal;
+                    }
+                }
             });
 
-            // Renderizar Top Productos (Soluciona el problema de carga infinita)
+            // Renderizar Top Productos
             let topProductos = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
             let ulTop = document.getElementById('kpi-top-productos');
             if (topProductos.length === 0) {
@@ -453,9 +466,10 @@
                 });
             }
 
-            // Dibujar las gráficas actualizadas
+            // Dibujar todas las gráficas por separado
             dibujarGraficoTiposPedido(ventasFirmeMes, consignacionMes);
-            dibujarGraficoClientes(ventasPorCliente);
+            dibujarGraficoClientesFirme(ventasPorClienteFirme);
+            dibujarGraficoClientesConsignacion(ventasPorClienteConsignacion);
         }
         function dibujarGraficoVentas(conteoProductos) {
             const ctx = document.getElementById('graficoVentas').getContext('2d');
@@ -845,6 +859,58 @@
                             }
                         }
                     }
+                }
+            });
+        }
+        let miGraficoClientesFirme = null;
+        let miGraficoClientesConsignacion = null;
+
+        function dibujarGraficoClientesFirme(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientesFirme').getContext('2d');
+            if (miGraficoClientesFirme) miGraficoClientesFirme.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 70%, 55%)`);
+            
+            miGraficoClientesFirme = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        function dibujarGraficoClientesConsignacion(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientesConsignacion').getContext('2d');
+            if (miGraficoClientesConsignacion) miGraficoClientesConsignacion.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 40%, 65%)`);
+            
+            miGraficoClientesConsignacion = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
                 }
             });
         }
