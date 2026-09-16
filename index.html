@@ -224,19 +224,23 @@
                 </div>
             </div>
             
-            <!-- Tarjetas de KPIs -->
+           <!-- Tarjetas de KPIs Ampliadas -->
             <div class="grid-kpis">
                 <div class="tarjeta-kpi">
-                    <h3>Ventas del Mes</h3>
-                    <p id="kpi-ventas">$0</p>
+                    <h3>Ventas Históricas (Acumulado)</h3>
+                    <p id="kpi-ventas-acumuladas">$0</p>
+                </div>
+                <div class="tarjeta-kpi">
+                    <h3 id="titulo-kpi-mes">Ventas del Período / Mes</h3>
+                    <p id="kpi-ventas-mes">$0</p>
                 </div>
                 <div class="tarjeta-kpi">
                     <h3>Cantidad Pedidos</h3>
                     <p id="kpi-pedidos">0</p>
                 </div>
-                <div class="tarjeta-kpi tarjeta-top">
-                    <h3>Top 3 Productos Más Vendidos</h3>
-                    <ul id="kpi-top-productos" class="lista-top">
+                <div class="tarjeta-kpi tarjeta-top" style="grid-column: span 3;">
+                    <h3>Top Productos (Según filtros)</h3>
+                    <ul id="kpi-top-productos" class="lista-top" style="display: flex; gap: 15px; justify-content: space-around;">
                         <li>Esperando datos...</li>
                     </ul>
                 </div>
