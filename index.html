@@ -219,9 +219,16 @@
                     </ul>
                 </div>
             </div>
-            <!-- Contenedor para Gráficos -->
-            <div class="contenedor-grafico" style="position: relative; height:280px; width:100%;">
-                <canvas id="graficoVentas"></canvas>
+            <!-- Contenedor para Gráficos Avanzados -->
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+                    <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Unidades Vendidas por Producto</h4>
+                    <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoVentas"></canvas></div>
+                </div>
+                <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
+                    <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas Totales por Cliente</h4>
+                    <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientes"></canvas></div>
+                </div>
             </div>
         </section>
         <footer class="developer-credit">
@@ -231,7 +238,7 @@
     </main>
     <datalist id="lista-productos-datalist"></datalist>
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxp1d9nmcg3q6pyinmm0ub7ERUspmyq76q0bzgdwH8GxnKfbkX5ZAs2bgvpSj8XeDaVBA/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyZnayKbegUfiokJoLtKajUi4nog0Y7hbfplTPLkeLxrRAxuQXlw64nX-RQKtVgDFMehQ/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -280,89 +287,179 @@
             }
         }
 
+        let todosLosPedidosMes = [];
+        let todosLosPedidosAcumulados = [];
         let miGraficoVentas = null;
+        let miGraficoClientes = null;
 
         async function cargarEstadisticas() {
             try {
-                document.getElementById('kpi-top-productos').innerHTML = "<li>Cargando datos acumulados...</li>";
-                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_estadisticas&_ts=" + new Date().getTime());
-                const datos = res.ok ? await res.json() : [];
-
-                if (!Array.isArray(datos) || datos.length === 0) {
-                    document.getElementById('kpi-ventas').innerText = "$0";
-                    document.getElementById('kpi-pedidos').innerText = "0";
-                    document.getElementById('kpi-top-productos').innerHTML = "<li>No hay registros en acumulados.</li>";
-                    return;
-                }
-
-                let totalVentas = 0;
-                let pedidosUnicos = new Set();
-                let conteoProductos = {};
-
-                datos.forEach(fila => {
-                    let numPedido = fila[0];
-                    let producto = fila[9];
-                    let cantidad = parseFloat(fila[11]) || 0;
-                    let subtotal = parseFloat(fila[13]) || 0;
-
-                    if (numPedido) pedidosUnicos.add(numPedido);
-                    totalVentas += subtotal;
-
-                    if (producto) {
-                        conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
-                    }
-                });
-
-                document.getElementById('kpi-ventas').innerText = "$" + totalVentas.toLocaleString('es-CO');
-                document.getElementById('kpi-pedidos').innerText = pedidosUnicos.size;
-
-                let topProductos = Object.entries(conteoProductos)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 3);
-
-                if (topProductos.length === 0) {
-                    document.getElementById('kpi-top-productos').innerHTML = "<li>Sin productos registrados</li>";
-                } else {
-                    let htmlTop = "";
-                    topProductos.forEach(([prod, cant], index) => {
-                        htmlTop += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
-                    });
-                    document.getElementById('kpi-top-productos').innerHTML = htmlTop;
-                }
-
-                // Renderizar Gráfica con Chart.js
-                const ctx = document.getElementById('graficoVentas').getContext('2d');
-                const labelsGrafico = Object.keys(conteoProductos);
-                const valoresGrafico = Object.values(conteoProductos);
-
-                if (miGraficoVentas) {
-                    miGraficoVentas.destroy();
-                }
-
-                miGraficoVentas = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labelsGrafico,
-                        datasets: [{
-                            label: 'Unidades Vendidas',
-                            data: valoresGrafico,
-                            backgroundColor: '#5b21b6',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-
+                document.getElementById('kpi-top-productos').innerHTML = "<li>Cargando datos del servidor...</li>";
+                
+                // Llamamos a la nueva ruta avanzada de la base de datos
+                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_estadisticas_avanzadas&_ts=" + new Date().getTime());
+                const datos = res.ok ? await res.json() : { mes: [], acumulado: [] };
+                
+                todosLosPedidosMes = datos.mes || [];
+                todosLosPedidosAcumulados = datos.acumulado || [];
+                
+                llenarSelectClientes();
+                aplicarFiltrosEstadisticas(); 
+                
             } catch (e) {
                 console.error("Error al cargar estadísticas:", e);
                 document.getElementById('kpi-top-productos').innerHTML = "<li>Error al consultar la base de datos</li>";
             }
+        }
+
+        function llenarSelectClientes() {
+            const select = document.getElementById('filtro-cliente');
+            let clientesUnicos = new Set();
+            
+            const todosLosDatos = [...todosLosPedidosAcumulados, ...todosLosPedidosMes];
+            todosLosDatos.forEach(fila => {
+                let cliente = fila[2]; // Índice 2 corresponde a la columna Nombre Cliente
+                if (cliente) clientesUnicos.add(cliente);
+            });
+            
+            let htmlOpciones = '<option value="TODOS">Todos los clientes</option>';
+            Array.from(clientesUnicos).sort().forEach(cli => {
+                htmlOpciones += `<option value="${cli}">${cli}</option>`;
+            });
+            select.innerHTML = htmlOpciones;
+        }
+
+        // Convierte "13/9/2026, 7:07:52 a. m." a un objeto Date real para poder filtrar
+        function convertirFecha(fechaTexto) {
+            if (!fechaTexto) return new Date(0);
+            let soloFecha = fechaTexto.split(',')[0].trim();
+            let partes = soloFecha.split('/');
+            if (partes.length === 3) {
+                return new Date(partes[2], partes[1] - 1, partes[0]);
+            }
+            return new Date(fechaTexto);
+        }
+
+        function aplicarFiltrosEstadisticas() {
+            const clienteSel = document.getElementById('filtro-cliente').value;
+            const fechaInicioStr = document.getElementById('filtro-fecha-inicio').value;
+            const fechaFinStr = document.getElementById('filtro-fecha-fin').value;
+            
+            let fechaInicio = fechaInicioStr ? new Date(fechaInicioStr + "T00:00:00") : null;
+            let fechaFin = fechaFinStr ? new Date(fechaFinStr + "T23:59:59") : null;
+
+            // Motor de filtrado
+            const filtrarDatos = (datos) => {
+                return datos.filter(fila => {
+                    let clienteFila = fila[2];
+                    let fechaFila = convertirFecha(String(fila[1]));
+                    
+                    let pasaCliente = (clienteSel === "TODOS" || clienteFila === clienteSel);
+                    let pasaFechaInicio = (!fechaInicio || fechaFila >= fechaInicio);
+                    let pasaFechaFin = (!fechaFin || fechaFila <= fechaFin);
+                    
+                    return pasaCliente && pasaFechaInicio && pasaFechaFin;
+                });
+            };
+
+            let pedidosMesFiltrados = filtrarDatos(todosLosPedidosMes);
+            let pedidosAcumuladosFiltrados = filtrarDatos(todosLosPedidosAcumulados);
+
+            // Cálculos matemáticos de las tarjetas KPI
+            let totalMes = 0;
+            let cantidadPedidosMes = new Set();
+            pedidosMesFiltrados.forEach(fila => {
+                totalMes += parseFloat(fila[13]) || 0; // Columna 13 es Total
+                if(fila[0]) cantidadPedidosMes.add(fila[0]); // Columna 0 es Numero Pedido
+            });
+
+            let totalAcumulado = 0;
+            pedidosAcumuladosFiltrados.forEach(fila => {
+                totalAcumulado += parseFloat(fila[13]) || 0;
+            });
+
+            document.getElementById('kpi-ventas-mes').innerText = "$" + totalMes.toLocaleString('es-CO');
+            document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
+            document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
+
+            // Unimos datos filtrados para recalcular el Top 3 y los gráficos
+            let todosFiltrados = [...pedidosAcumuladosFiltrados, ...pedidosMesFiltrados];
+            let conteoProductos = {};
+            let ventasPorCliente = {};
+
+            todosFiltrados.forEach(fila => {
+                let cliente = fila[2] || "Desconocido";
+                let producto = fila[9]; // Columna 9 es Producto
+                let cantidad = parseFloat(fila[11]) || 0; // Columna 11 es Cantidad
+                let subtotal = parseFloat(fila[13]) || 0;
+
+                if (producto) conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
+                if (cliente) ventasPorCliente[cliente] = (ventasPorCliente[cliente] || 0) + subtotal;
+            });
+
+            // Actualizar Top 3 HTML
+            let topProductos = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            let ulTop = document.getElementById('kpi-top-productos');
+            if (topProductos.length === 0) {
+                ulTop.innerHTML = "<li>No hay ventas para los filtros seleccionados</li>";
+            } else {
+                ulTop.innerHTML = "";
+                topProductos.forEach(([prod, cant], index) => {
+                    ulTop.innerHTML += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
+                });
+            }
+
+            // Refrescar Gráficos en tiempo real
+            dibujarGraficoVentas(conteoProductos);
+            dibujarGraficoClientes(ventasPorCliente);
+        }
+
+        function dibujarGraficoVentas(conteoProductos) {
+            const ctx = document.getElementById('graficoVentas').getContext('2d');
+            if (miGraficoVentas) miGraficoVentas.destroy(); // Borrar gráfico anterior si existe
+            
+            miGraficoVentas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(conteoProductos),
+                    datasets: [{
+                        label: 'Unidades Vendidas',
+                        data: Object.values(conteoProductos),
+                        backgroundColor: '#5b21b6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function dibujarGraficoClientes(ventasPorCliente) {
+            const ctx = document.getElementById('graficoClientes').getContext('2d');
+            if (miGraficoClientes) miGraficoClientes.destroy();
+            
+            let labels = Object.keys(ventasPorCliente);
+            let datos = Object.values(ventasPorCliente);
+            // Generar colores distintos basados en la cantidad de clientes
+            let colores = labels.map((_, i) => `hsl(${i * (360 / Math.max(labels.length, 1))}, 70%, 55%)`);
+
+            miGraficoClientes = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: colores,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+                }
+            });
         }
         async function realizarCierreMes() {
             if (confirm("¿Estás seguro de realizar el cierre? Se eliminarán de la vista principal únicamente los pedidos despachados o entregados, manteniendo el historial en acumulados.")) {
