@@ -404,7 +404,7 @@
             
             pedidosMesFiltrados.forEach(fila => {
                 let valor = parseFloat(fila[13]) || 0;
-                let tipoPedido = String(fila[16] || "").trim(); // Columna 17
+                let tipoPedido = String(fila[16] || "").trim(); // Columna 17: Tipo de Pedido
                 
                 if (tipoPedido === "Consignación") {
                     consignacionMes += valor;
@@ -426,16 +426,34 @@
             document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
             document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
 
+            // Procesar productos y clientes para las listas y gráficas
             let todosFiltrados = [...pedidosAcumuladosFiltrados, ...pedidosMesFiltrados];
+            let conteoProductos = {};
             let ventasPorCliente = {};
 
             todosFiltrados.forEach(fila => {
                 let cliente = fila[2] || "Desconocido";
+                let producto = fila[9]; 
+                let cantidad = parseFloat(fila[11]) || 0; 
                 let subtotal = parseFloat(fila[13]) || 0;
+                
+                if (producto) conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
                 if (cliente) ventasPorCliente[cliente] = (ventasPorCliente[cliente] || 0) + subtotal;
             });
 
-            // Dibujar la nueva gráfica comparativa y la de clientes
+            // Renderizar Top Productos (Soluciona el problema de carga infinita)
+            let topProductos = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            let ulTop = document.getElementById('kpi-top-productos');
+            if (topProductos.length === 0) {
+                ulTop.innerHTML = "<li>No hay ventas para los filtros seleccionados</li>";
+            } else {
+                ulTop.innerHTML = "";
+                topProductos.forEach(([prod, cant], index) => {
+                    ulTop.innerHTML += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
+                });
+            }
+
+            // Dibujar las gráficas actualizadas
             dibujarGraficoTiposPedido(ventasFirmeMes, consignacionMes);
             dibujarGraficoClientes(ventasPorCliente);
         }
