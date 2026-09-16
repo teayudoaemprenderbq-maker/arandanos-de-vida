@@ -235,6 +235,11 @@
                     <h3 id="titulo-kpi-mes">Ventas del Período / Mes</h3>
                     <p id="kpi-ventas-mes">$0</p>
                 </div>
+                <!-- NUEVA TARJETA PARA CONSIGNACIÓN -->
+                <div class="tarjeta-kpi">
+                    <h3>Consignaciones (Mes)</h3>
+                    <p id="kpi-consignacion-mes">$0</p>
+                </div>
                 <div class="tarjeta-kpi">
                     <h3>Cantidad Pedidos</h3>
                     <p id="kpi-pedidos">0</p>
@@ -393,12 +398,25 @@
             let pedidosMesFiltrados = filtrarDatos(todosLosPedidosMes);
             let pedidosAcumuladosFiltrados = filtrarDatos(todosLosPedidosAcumulados);
 
-            let totalMes = 0;
+            let ventasFirmeMes = 0;
+            let consignacionMes = 0;
             let cantidadPedidosMes = new Set();
+            
             pedidosMesFiltrados.forEach(fila => {
-                totalMes += parseFloat(fila[13]) || 0; 
+                let valor = parseFloat(fila[13]) || 0;
+                let tipoPedido = String(fila[16] || "").trim(); // Columna 17 (índice 16): Tipo Pedido
+                
+                if (tipoPedido === "Consignación") {
+                    consignacionMes += valor;
+                } else {
+                    ventasFirmeMes += valor; // Asume "Pedido en Firme"
+                }
+                
                 if(fila[0]) cantidadPedidosMes.add(fila[0]); 
             });
+
+            // Usamos ventasFirmeMes como el total principal de ventas del mes
+            let totalMes = ventasFirmeMes;
 
             let totalAcumulado = 0;
             pedidosAcumuladosFiltrados.forEach(fila => {
@@ -406,6 +424,7 @@
             });
 
             document.getElementById('kpi-ventas-mes').innerText = "$" + totalMes.toLocaleString('es-CO');
+            document.getElementById('kpi-consignacion-mes').innerText = "$" + consignacionMes.toLocaleString('es-CO'); // <--- Agrega esta línea
             document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
             document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
 
