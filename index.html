@@ -255,9 +255,9 @@
             <!-- Contenedor para Gráficos Avanzados -->
             <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
                 <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
-                    <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Unidades Vendidas por Producto</h4>
-                    <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoVentas"></canvas></div>
-                </div>
+                <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas en Firme vs Consignaciones</h4>
+                <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoTiposPedido"></canvas></div>
+            </div>
                 <div class="contenedor-grafico" style="flex: 1; min-width: 300px; position: relative; height:320px; flex-direction: column;">
                     <h4 style="margin-bottom: 10px; color: var(--primary); text-align: center; width: 100%;">Ventas Totales por Cliente</h4>
                     <div style="position: relative; height: 100%; width: 100%;"><canvas id="graficoClientes"></canvas></div>
@@ -404,58 +404,41 @@
             
             pedidosMesFiltrados.forEach(fila => {
                 let valor = parseFloat(fila[13]) || 0;
-                let tipoPedido = String(fila[16] || "").trim(); // Columna 17 (índice 16): Tipo Pedido
+                let tipoPedido = String(fila[16] || "").trim(); // Columna 17
                 
                 if (tipoPedido === "Consignación") {
                     consignacionMes += valor;
                 } else {
-                    ventasFirmeMes += valor; // Asume "Pedido en Firme"
+                    ventasFirmeMes += valor;
                 }
                 
                 if(fila[0]) cantidadPedidosMes.add(fila[0]); 
             });
-
-            // Usamos ventasFirmeMes como el total principal de ventas del mes
-            let totalMes = ventasFirmeMes;
 
             let totalAcumulado = 0;
             pedidosAcumuladosFiltrados.forEach(fila => {
                 totalAcumulado += parseFloat(fila[13]) || 0;
             });
 
-            document.getElementById('kpi-ventas-mes').innerText = "$" + totalMes.toLocaleString('es-CO');
-            document.getElementById('kpi-consignacion-mes').innerText = "$" + consignacionMes.toLocaleString('es-CO'); // <--- Agrega esta línea
+            // Actualizar tarjetas KPIs
+            document.getElementById('kpi-ventas-mes').innerText = "$" + ventasFirmeMes.toLocaleString('es-CO');
+            document.getElementById('kpi-consignacion-mes').innerText = "$" + consignacionMes.toLocaleString('es-CO');
             document.getElementById('kpi-pedidos').innerText = cantidadPedidosMes.size;
             document.getElementById('kpi-ventas-acumuladas').innerText = "$" + totalAcumulado.toLocaleString('es-CO');
 
             let todosFiltrados = [...pedidosAcumuladosFiltrados, ...pedidosMesFiltrados];
-            let conteoProductos = {};
             let ventasPorCliente = {};
 
             todosFiltrados.forEach(fila => {
                 let cliente = fila[2] || "Desconocido";
-                let producto = fila[9]; 
-                let cantidad = parseFloat(fila[11]) || 0; 
                 let subtotal = parseFloat(fila[13]) || 0;
-                if (producto) conteoProductos[producto] = (conteoProductos[producto] || 0) + cantidad;
                 if (cliente) ventasPorCliente[cliente] = (ventasPorCliente[cliente] || 0) + subtotal;
             });
 
-            let topProductos = Object.entries(conteoProductos).sort((a, b) => b[1] - a[1]).slice(0, 3);
-            let ulTop = document.getElementById('kpi-top-productos');
-            if (topProductos.length === 0) {
-                ulTop.innerHTML = "<li>No hay ventas para los filtros seleccionados</li>";
-            } else {
-                ulTop.innerHTML = "";
-                topProductos.forEach(([prod, cant], index) => {
-                    ulTop.innerHTML += `<li><strong>#${index + 1}</strong> ${prod} (${cant} unds)</li>`;
-                });
-            }
-
-            dibujarGraficoVentas(conteoProductos);
+            // Dibujar la nueva gráfica comparativa y la de clientes
+            dibujarGraficoTiposPedido(ventasFirmeMes, consignacionMes);
             dibujarGraficoClientes(ventasPorCliente);
         }
-
         function dibujarGraficoVentas(conteoProductos) {
             const ctx = document.getElementById('graficoVentas').getContext('2d');
             if (miGraficoVentas) miGraficoVentas.destroy(); 
@@ -812,6 +795,40 @@
         
         function descargarInformeCSV() {
             alert("Función de descarga en construcción.");
+        }
+        let miGraficoTipos = null;
+
+        function dibujarGraficoTiposPedido(firme, consignacion) {
+            const ctx = document.getElementById('graficoTiposPedido').getContext('2d');
+            if (miGraficoTipos) miGraficoTipos.destroy(); 
+            
+            miGraficoTipos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pedidos en Firme', 'Consignaciones'],
+                    datasets: [{
+                        label: 'Valor Total ($)',
+                        data: [firme, consignacion],
+                        backgroundColor: ['#5b21b6', '#0ea5e9'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
