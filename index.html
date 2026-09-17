@@ -625,8 +625,8 @@
                 }
                 
                 try {
-                    // Actualizar encabezados
-                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Tipo Pedido</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+                    // Encabezados con Tipo Pedido ubicado al final, justo antes de la Acción
+                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Tipo Pedido</th><th>Acción</th></tr>";
                     const listaPedidos = data.pedidos || [];
                     const pedidosAgrupados = {};
                     
@@ -636,12 +636,12 @@
                             pedidosAgrupados[numPedido] = {
                                 fecha: p[1],
                                 cliente: p[2],
-                                tipoPedido: p[16] || "Firme", // Capturamos la columna del tipo de pedido
+                                tipoPedido: p[16] || "Firme", 
                                 productosHtml: "",
                                 totalPedido: 0,
                                 estadoGeneral: p[14] || "ingresado",
                                 items: []
-                        };        
+                            };        
                         }
                         let cant = p[11] || 0;
                         let nombreProd = p[9] || "";
@@ -650,22 +650,27 @@
                         pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
                         pedidosAgrupados[numPedido].totalPedido += totalItem;
                     });
+
                     Object.keys(pedidosAgrupados).forEach(numPedido => {
                         let ped = pedidosAgrupados[numPedido];
                         let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
                         let botonAccion = esDespachado 
                             ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
                             : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
+                        
+                        // Fila construida con el Tipo Pedido al final
                         htmlPedidos += `<tr>
-                        <td>${numPedido}</td>
-                        <td>${ped.fecha}</td>
-                        <td>${ped.cliente}</td>
-                        <td><strong style="color: var(--primary);">${ped.tipoPedido}</strong></td>
-                        <td>${ped.productosHtml}</td>
-                        <td>$${ped.totalPedido}</td>
-                        <td><strong>${ped.estadoGeneral}</strong></td>
-                        <td>${botonAccion}</td>
-                    </tr>`;
+                            <td>${numPedido}</td>
+                            <td>${ped.fecha}</td>
+                            <td>${ped.cliente}</td>
+                            <td>${ped.productosHtml}</td>
+                            <td>$${ped.totalPedido}</td>
+                            <td><strong>${ped.estadoGeneral}</strong></td>
+                            <td><strong style="color: var(--primary);">${ped.tipoPedido}</strong></td>
+                            <td>${botonAccion}</td>
+                        </tr>`;
+                    });
+                    document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
                         try {
     if (data.insumos) {
         let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
@@ -711,16 +716,15 @@
                         document.getElementById('tabla-medellin-box').innerHTML = generarTablaHTML(data.inventarioMedellin);
                     }
                     if (data.consignaciones) {
-                        // Buscamos usando tanto el nombre corto como el nombre exacto de la hoja de Google Sheets
-                        let datosGaru = data.consignaciones.garu || data.consignaciones['Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.'];
-                        let datosSebastian = data.consignaciones.sebastian || data.consignaciones['Sebastián Arango restrepo -Be Good'];
-                        let datosMakeina = data.consignaciones.makeina || data.consignaciones['Makeina SAS'];
+                        // Usamos los nombres exactos de tus hojas en Google Sheets
+                        let datosGaru = data.consignaciones['Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.'] || data.consignaciones.garu;
+                        let datosSebastian = data.consignaciones['Sebastián Arango restrepo -Be Good'] || data.consignaciones.sebastian;
+                        let datosMakeina = data.consignaciones['Makeina SAS'] || data.consignaciones.makeina;
 
                         document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(datosGaru);
                         document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(datosSebastian);
                         document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(datosMakeina);
-                    }
-                } catch (e) {}
+                    }                } catch (e) {}
             } catch(e) { console.error("Error general al cargar los datos:", e); }
         }
 
