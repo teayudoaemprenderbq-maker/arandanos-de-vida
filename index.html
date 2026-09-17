@@ -625,7 +625,7 @@
                     console.error("Error al cargar clientes o productos:", errClientes);
                 }
                 
-                // 2. Cargar Pedidos (con Tipo Pedido al final)
+                // 2. Cargar Pedidos
                 try {
                     let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Tipo Pedido</th><th>Acción</th></tr>";
                     const listaPedidos = data.pedidos || [];
@@ -675,7 +675,7 @@
                     console.error("Error al cargar la tabla de pedidos:", errPedidos);
                 }
 
-                // 3. Cargar Insumos (Fuera del bucle de pedidos)
+                // 3. Cargar Insumos
                 try {
                     if (data.insumos) {
                         let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
@@ -695,7 +695,7 @@
                     console.error("Error al cargar la tabla de insumos:", errInsumos);
                 }
                 
-                // 4. Cargar Inventarios y Subpestañas de Consignaciones
+                // 4. Cargar Inventarios y Subpestañas de Consignaciones (Búsqueda dinámica por palabras clave)
                 try {
                     function generarTablaHTML(matriz) {
                         let html = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
@@ -716,9 +716,23 @@
                     }
                     
                     if (data.consignaciones) {
-                        let datosGaru = data.consignaciones['Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.'] || data.consignaciones.garu;
-                        let datosSebastian = data.consignaciones['Sebastián Arango restrepo -Be Good'] || data.consignaciones.sebastian;
-                        let datosMakeina = data.consignaciones['Makeina SAS'] || data.consignaciones.makeina;
+                        let consignacionesKeys = Object.keys(data.consignaciones);
+                        let datosGaru = null;
+                        let datosSebastian = null;
+                        let datosMakeina = null;
+
+                        consignacionesKeys.forEach(key => {
+                            let keyLower = key.toLowerCase();
+                            if (keyLower.includes('garu')) {
+                                datosGaru = data.consignaciones[key];
+                            }
+                            if (keyLower.includes('sebastian') || keyLower.includes('be good')) {
+                                datosSebastian = data.consignaciones[key];
+                            }
+                            if (keyLower.includes('makeina')) {
+                                datosMakeina = data.consignaciones[key];
+                            }
+                        });
 
                         document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(datosGaru);
                         document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(datosSebastian);
@@ -731,8 +745,7 @@
             } catch(e) { 
                 console.error("Error general al cargar los datos:", e); 
             }
-        }
-        function agregarFilaProducto() {
+        }        function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
             div.className = 'product-row';
