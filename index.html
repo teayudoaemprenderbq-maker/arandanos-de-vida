@@ -692,9 +692,15 @@
                 try {
                     function generarTablaHTML(matriz) {
                         let html = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                        (matriz || []).forEach(i => {
-                            html += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
-                        });
+                        
+                        // Si la matriz está vacía o no tiene productos
+                        if (!matriz || matriz.length === 0) {
+                            html += `<tr><td colspan="10" style="text-align:center; padding: 20px; color: #64748b;">No hay productos en esta bodega. Verifica que la pestaña exista en Google Sheets y tenga los EAN registrados.</td></tr>`;
+                        } else {
+                            matriz.forEach(i => {
+                                html += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
+                            });
+                        }
                         return html + "</table>";
                     }
 
@@ -765,17 +771,27 @@
 
         async function enviarDatos(datos) {
             try {
-                await fetch(URL_GOOGLE_SCRIPT, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                // Quitamos el 'no-cors' y los headers restrictivos para que Google responda correctamente
+                const res = await fetch(URL_GOOGLE_SCRIPT, { 
+                    method: 'POST',
                     body: JSON.stringify(datos) 
                 });
-                alert("Operación completada con éxito.");
-                setTimeout(cargarDatosBase, 1500); 
+                
+                // Ahora sí capturamos la respuesta real que envía Google Apps Script
+                const respuesta = await res.json();
+                
+                if (respuesta.estado === "error") {
+                    // Si el servidor falla, te mostrará exactamente por qué
+                    alert("❌ Error en el Servidor: " + respuesta.mensaje);
+                } else {
+                    alert("✅ " + (respuesta.mensaje || "Operación completada con éxito."));
+                    setTimeout(cargarDatosBase, 1500); 
+                }
             } catch (error) { 
-                alert("Ocurrió un error al enviar los datos."); 
+                alert("⚠️ Ocurrió un error de red o de comunicación con el servidor."); 
+                console.error("Detalle del error:", error);
             }
+        }
         }
 
         function guardarPedido() {
