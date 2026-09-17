@@ -797,28 +797,35 @@
         }
 
         async function enviarDatos(datos) {
-            try {
-                // Quitamos el 'no-cors' y los headers restrictivos para que Google responda correctamente
-                const res = await fetch(URL_GOOGLE_SCRIPT, { 
-                    method: 'POST',
-                    body: JSON.stringify(datos) 
-                });
-                
-                // Ahora sí capturamos la respuesta real que envía Google Apps Script
-                const respuesta = await res.json();
-                
-                if (respuesta.estado === "error") {
-                    // Si el servidor falla, te mostrará exactamente por qué
-                    alert("❌ Error en el Servidor: " + respuesta.mensaje);
-                } else {
-                    alert("✅ " + (respuesta.mensaje || "Operación completada con éxito."));
-                    setTimeout(cargarDatosBase, 1500); 
-                }
-            } catch (error) { 
-                alert("⚠️ Ocurrió un error de red o de comunicación con el servidor."); 
-                console.error("Detalle del error:", error);
-            }
+    try {
+        const res = await fetch(URL_GOOGLE_SCRIPT, { 
+            method: 'POST',
+            body: JSON.stringify(datos) 
+        });
+        
+        // Capturamos la respuesta como texto primero para evitar errores si el script devuelve HTML
+        const textoRespuesta = await res.text();
+        let respuesta;
+        
+        try {
+            respuesta = JSON.parse(textoRespuesta);
+        } catch (e) {
+            console.error("El servidor no devolvió un JSON válido:", textoRespuesta);
+            alert("⚠️ El servidor respondió con un formato inesperado. Revisa la consola (F12) para ver el detalle.");
+            return;
         }
+        
+        if (respuesta.estado === "error") {
+            alert("❌ Error en el Servidor: " + respuesta.mensaje);
+        } else {
+            alert("✅ " + (respuesta.mensaje || "Operación completada con éxito."));
+            setTimeout(cargarDatosBase, 1500); 
+        }
+    } catch (error) { 
+        alert("⚠️ Ocurrió un error de red o de comunicación con el servidor."); 
+        console.error("Detalle del error:", error);
+    }
+}
         
 
         function guardarPedido() {
