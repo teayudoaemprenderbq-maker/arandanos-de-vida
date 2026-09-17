@@ -823,14 +823,27 @@
             });
         }
 
-        async function despacharPedidoCompleto(numeroPedido) {
-            if (confirm(`¿Deseas despachar el pedido ${numeroPedido}? Se actualizará el inventario de todos sus productos y se generará la remisión consolidada.`)) {
-                await enviarDatos({ 
-                    accion: "despachar_pedido_completo", 
-                    numeroPedido: numeroPedido 
-                });
-            }
-        }
+       async function despacharPedidoCompleto(numeroPedido) {
+    // 1. Preguntamos desde qué bodega se despachará
+    let opcion = prompt("¿Desde qué bodega deseas despachar el pedido y descontar el inventario?\n\nEscribe el número correspondiente:\n1 = Inventario Principal\n2 = Inventario Medellín", "1");
+    
+    // Si haces clic en Cancelar, la función se detiene
+    if (opcion === null) {
+        return; 
+    }
+    
+    // 2. Evaluamos la respuesta
+    let bodegaSelect = (opcion === "2") ? "Inventario Medellin" : "Inventario";
+    
+    // 3. Confirmación final de seguridad
+    if (confirm(`⚠️ ATENCIÓN: Vas a despachar el pedido ${numeroPedido}.\n\nSe descontará la mercancía directamente de: [ ${bodegaSelect.toUpperCase()} ].\n\n¿Estás completamente segura de continuar?`)) {
+        await enviarDatos({ 
+            accion: "despachar_pedido_completo", 
+            numeroPedido: numeroPedido,
+            bodegaOrigen: bodegaSelect // Enviamos esta información exacta al script
+        });
+    }
+}
 
         function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
