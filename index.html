@@ -600,6 +600,7 @@
                 const data = res.ok ? await res.json() : null; 
                 if (!data) return; 
                 
+                // 1. Cargar Clientes y Productos
                 try {
                     baseDatosClientes = data.clientes || [];
                     let dataCli = "";
@@ -624,8 +625,8 @@
                     console.error("Error al cargar clientes o productos:", errClientes);
                 }
                 
+                // 2. Cargar Pedidos (con Tipo Pedido al final)
                 try {
-                    // Encabezados con Tipo Pedido ubicado al final, justo antes de la Acción
                     let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Tipo Pedido</th><th>Acción</th></tr>";
                     const listaPedidos = data.pedidos || [];
                     const pedidosAgrupados = {};
@@ -658,7 +659,6 @@
                             ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
                             : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
                         
-                        // Fila construida con el Tipo Pedido al final
                         htmlPedidos += `<tr>
                             <td>${numPedido}</td>
                             <td>${ped.fecha}</td>
@@ -671,35 +671,34 @@
                         </tr>`;
                     });
                     document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
-                        try {
-    if (data.insumos) {
-        let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
-        data.insumos.forEach(i => {
-            htmlInsumos += `<tr>
-                <td>${i[0] || ''}</td>
-                <td>${i[1] || ''}</td>
-                <td>${i[2] || 0}</td>
-                <td>${i[3] || 0}</td>
-                <td>${i[4] || 0}</td>
-                <td><strong style="color:var(--primary);">${i[5] || 0}</strong></td>
-            </tr>`;
-        });
-        document.getElementById('tabla-insumos-box').innerHTML = htmlInsumos + "</table>";
-    }
-} catch (errInsumos) {
-    console.error("Error al cargar la tabla de insumos:", errInsumos);
-}
-                    });
-                    document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
                 } catch (errPedidos) {
                     console.error("Error al cargar la tabla de pedidos:", errPedidos);
                 }
+
+                // 3. Cargar Insumos (Fuera del bucle de pedidos)
+                try {
+                    if (data.insumos) {
+                        let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
+                        data.insumos.forEach(i => {
+                            htmlInsumos += `<tr>
+                                <td>${i[0] || ''}</td>
+                                <td>${i[1] || ''}</td>
+                                <td>${i[2] || 0}</td>
+                                <td>${i[3] || 0}</td>
+                                <td>${i[4] || 0}</td>
+                                <td><strong style="color:var(--primary);">${i[5] || 0}</strong></td>
+                            </tr>`;
+                        });
+                        document.getElementById('tabla-insumos-box').innerHTML = htmlInsumos + "</table>";
+                    }
+                } catch (errInsumos) {
+                    console.error("Error al cargar la tabla de insumos:", errInsumos);
+                }
                 
+                // 4. Cargar Inventarios y Subpestañas de Consignaciones
                 try {
                     function generarTablaHTML(matriz) {
                         let html = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                        
-                        // Si la matriz está vacía o no tiene productos
                         if (!matriz || matriz.length === 0) {
                             html += `<tr><td colspan="10" style="text-align:center; padding: 20px; color: #64748b;">No hay productos en esta bodega. Verifica que la pestaña exista en Google Sheets y tenga los EAN registrados.</td></tr>`;
                         } else {
@@ -709,14 +708,14 @@
                         }
                         return html + "</table>";
                     }
-
+                    
                     document.getElementById('tabla-inventario-box').innerHTML = generarTablaHTML(data.inventario);
-
+                    
                     if (data.inventarioMedellin) {
                         document.getElementById('tabla-medellin-box').innerHTML = generarTablaHTML(data.inventarioMedellin);
                     }
+                    
                     if (data.consignaciones) {
-                        // Usamos los nombres exactos de tus hojas en Google Sheets
                         let datosGaru = data.consignaciones['Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.'] || data.consignaciones.garu;
                         let datosSebastian = data.consignaciones['Sebastián Arango restrepo -Be Good'] || data.consignaciones.sebastian;
                         let datosMakeina = data.consignaciones['Makeina SAS'] || data.consignaciones.makeina;
@@ -724,10 +723,15 @@
                         document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(datosGaru);
                         document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(datosSebastian);
                         document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(datosMakeina);
-                    }                } catch (e) {}
-            } catch(e) { console.error("Error general al cargar los datos:", e); }
-        }
+                    }
+                } catch (e) {
+                    console.error("Error al cargar inventarios:", e);
+                }
 
+            } catch(e) { 
+                console.error("Error general al cargar los datos:", e); 
+            }
+        }
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
