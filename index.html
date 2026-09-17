@@ -711,9 +711,14 @@
                         document.getElementById('tabla-medellin-box').innerHTML = generarTablaHTML(data.inventarioMedellin);
                     }
                     if (data.consignaciones) {
-                        document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(data.consignaciones.garu);
-                        document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(data.consignaciones.sebastian);
-                        document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(data.consignaciones.makeina);
+                        // Buscamos usando tanto el nombre corto como el nombre exacto de la hoja de Google Sheets
+                        let datosGaru = data.consignaciones.garu || data.consignaciones['Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.'];
+                        let datosSebastian = data.consignaciones.sebastian || data.consignaciones['Sebastián Arango restrepo -Be Good'];
+                        let datosMakeina = data.consignaciones.makeina || data.consignaciones['Makeina SAS'];
+
+                        document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(datosGaru);
+                        document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(datosSebastian);
+                        document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(datosMakeina);
                     }
                 } catch (e) {}
             } catch(e) { console.error("Error general al cargar los datos:", e); }
