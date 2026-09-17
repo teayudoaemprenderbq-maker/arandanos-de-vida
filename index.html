@@ -940,7 +940,11 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
                 }
-                function evaluarTipoPedido() {
+            }); // <-- ¡Aquí cerramos correctamente la creación del Chart!
+        }
+
+        // Ahora estas funciones están libres e independientes
+        function evaluarTipoPedido() {
             let tipo = document.getElementById('ped_tipopedido').value;
             let grupoBodega = document.getElementById('grupo_bodega_origen');
             if (tipo === "Consignación") {
@@ -955,13 +959,10 @@
             document.getElementById('tabla-garu-box').classList.add('hidden');
             document.getElementById('tabla-sebastian-box').classList.add('hidden');
             document.getElementById('tabla-makeina-box').classList.add('hidden');
-
             if (idSub === 'medellin_principal') document.getElementById('tabla-medellin-box').classList.remove('hidden');
             if (idSub === 'garu') document.getElementById('tabla-garu-box').classList.remove('hidden');
             if (idSub === 'sebastian') document.getElementById('tabla-sebastian-box').classList.remove('hidden');
             if (idSub === 'makeina') document.getElementById('tabla-makeina-box').classList.remove('hidden');
-        }
-            });
         }
     </script>
 </body>
