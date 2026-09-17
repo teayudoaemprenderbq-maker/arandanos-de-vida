@@ -204,10 +204,10 @@
             <div id="admin-medellin" class="admin-section">
                 <!-- Sub-navegación interna de Consignaciones -->
                 <div style="display: flex; gap: 5px; margin-bottom: 10px; background: #e2e8f0; padding: 5px; border-radius: 6px;">
-                    <button type="button" class="btn-action" onclick="verSubInvMedellin('medellin_principal')">Bodega Medellín</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('garu')">Mercado Garu Fit</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('sebastian')">Sebastián Arango</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('makeina')">Makeina SAS</button>
+                    <button type="button" class="btn-action" style="background:var(--primary);" onclick="verSubInvMedellin('medellin_principal', this)">Bodega Medellín</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('garu', this)">Mercado Garu Fit</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('sebastian', this)">Sebastián Arango</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('makeina', this)">Makeina SAS</button>
                 </div>
 
                 <div class="table-container" id="tabla-medellin-box">Cargando Medellín...</div>
@@ -624,7 +624,8 @@
                 }
                 
                 try {
-                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+                    // Actualizar encabezados
+                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Tipo Pedido</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
                     const listaPedidos = data.pedidos || [];
                     const pedidosAgrupados = {};
                     
@@ -634,11 +635,12 @@
                             pedidosAgrupados[numPedido] = {
                                 fecha: p[1],
                                 cliente: p[2],
+                                tipoPedido: p[16] || "Firme", // Capturamos la columna del tipo de pedido
                                 productosHtml: "",
                                 totalPedido: 0,
                                 estadoGeneral: p[14] || "ingresado",
                                 items: []
-                            };
+                        };        
                         }
                         let cant = p[11] || 0;
                         let nombreProd = p[9] || "";
@@ -654,14 +656,33 @@
                             ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
                             : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
                         htmlPedidos += `<tr>
-                            <td>${numPedido}</td>
-                            <td>${ped.fecha}</td>
-                            <td>${ped.cliente}</td>
-                            <td>${ped.productosHtml}</td>
-                            <td>$${ped.totalPedido}</td>
-                            <td><strong>${ped.estadoGeneral}</strong></td>
-                            <td>${botonAccion}</td>
-                        </tr>`;
+                        <td>${numPedido}</td>
+                        <td>${ped.fecha}</td>
+                        <td>${ped.cliente}</td>
+                        <td><strong style="color: var(--primary);">${ped.tipoPedido}</strong></td>
+                        <td>${ped.productosHtml}</td>
+                        <td>$${ped.totalPedido}</td>
+                        <td><strong>${ped.estadoGeneral}</strong></td>
+                        <td>${botonAccion}</td>
+                    </tr>`;
+                        try {
+    if (data.insumos) {
+        let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
+        data.insumos.forEach(i => {
+            htmlInsumos += `<tr>
+                <td>${i[0] || ''}</td>
+                <td>${i[1] || ''}</td>
+                <td>${i[2] || 0}</td>
+                <td>${i[3] || 0}</td>
+                <td>${i[4] || 0}</td>
+                <td><strong style="color:var(--primary);">${i[5] || 0}</strong></td>
+            </tr>`;
+        });
+        document.getElementById('tabla-insumos-box').innerHTML = htmlInsumos + "</table>";
+    }
+} catch (errInsumos) {
+    console.error("Error al cargar la tabla de insumos:", errInsumos);
+}
                     });
                     document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
                 } catch (errPedidos) {
@@ -954,16 +975,26 @@
             }
         }
 
-        function verSubInvMedellin(idSub) {
-            document.getElementById('tabla-medellin-box').classList.add('hidden');
-            document.getElementById('tabla-garu-box').classList.add('hidden');
-            document.getElementById('tabla-sebastian-box').classList.add('hidden');
-            document.getElementById('tabla-makeina-box').classList.add('hidden');
-            if (idSub === 'medellin_principal') document.getElementById('tabla-medellin-box').classList.remove('hidden');
-            if (idSub === 'garu') document.getElementById('tabla-garu-box').classList.remove('hidden');
-            if (idSub === 'sebastian') document.getElementById('tabla-sebastian-box').classList.remove('hidden');
-            if (idSub === 'makeina') document.getElementById('tabla-makeina-box').classList.remove('hidden');
-        }
+        function verSubInvMedellin(idSub, botonSeleccionado) {
+    // 1. Ocultar todas las tablas
+    document.getElementById('tabla-medellin-box').classList.add('hidden');
+    document.getElementById('tabla-garu-box').classList.add('hidden');
+    document.getElementById('tabla-sebastian-box').classList.add('hidden');
+    document.getElementById('tabla-makeina-box').classList.add('hidden');
+    
+    // 2. Mostrar la tabla elegida
+    if (idSub === 'medellin_principal') document.getElementById('tabla-medellin-box').classList.remove('hidden');
+    if (idSub === 'garu') document.getElementById('tabla-garu-box').classList.remove('hidden');
+    if (idSub === 'sebastian') document.getElementById('tabla-sebastian-box').classList.remove('hidden');
+    if (idSub === 'makeina') document.getElementById('tabla-makeina-box').classList.remove('hidden');
+
+    // 3. Resaltar el botón seleccionado
+    if (botonSeleccionado) {
+        let botones = botonSeleccionado.parentElement.querySelectorAll('button');
+        botones.forEach(b => b.style.background = '#64748b'); // Restablecer color inactivo
+        botonSeleccionado.style.background = 'var(--primary)'; // Aplicar color activo
+    }
+}
     </script>
 </body>
 </html>
