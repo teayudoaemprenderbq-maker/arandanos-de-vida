@@ -132,6 +132,13 @@
                     <option value="Consignación">Consignación</option>
                 </select>
             </div>
+            <div class="form-group hidden" id="grupo_bodega_origen">
+                <label>Bodega a Descargar</label>
+                <select id="ped_bodega_origen">
+                    <option value="Inventario">Inventario Principal</option>
+                    <option value="Inventario Medellin">Inventario Medellín</option>
+                </select>
+            </div>
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
         </section>
 
@@ -185,12 +192,29 @@
             <button id="btn-actualizar" class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="forzarActualizacion()">Actualizar Datos de la Nube</button>
             
             <div class="admin-nav">
+                <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
+                <button id="subtab-admin-medellin" onclick="cambiarSubPestaña('admin-medellin')">Inv. Medellín</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
+            </div>
             </div>
             <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+            <div id="admin-medellin" class="admin-section">
+                <!-- Sub-navegación interna de Consignaciones -->
+                <div style="display: flex; gap: 5px; margin-bottom: 10px; background: #e2e8f0; padding: 5px; border-radius: 6px;">
+                    <button type="button" class="btn-action" onclick="verSubInvMedellin('medellin_principal')">Bodega Medellín</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('garu')">Mercado Garu Fit</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('sebastian')">Sebastián Arango</button>
+                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('makeina')">Makeina SAS</button>
+                </div>
+
+                <div class="table-container" id="tabla-medellin-box">Cargando Medellín...</div>
+                <div class="table-container hidden" id="tabla-garu-box">Cargando Garu...</div>
+                <div class="table-container hidden" id="tabla-sebastian-box">Cargando Sebastián...</div>
+                <div class="table-container hidden" id="tabla-makeina-box">Cargando Makeina...</div>
+            </div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
 
@@ -279,7 +303,7 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzSIdvOhBfMH4ITXcs2I4yvdmLty3D6h7vEhYsLIJ8Q8DDJlLs9YGMIMyP79H-nNr0cGw/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzTAG2mfEF3OTUrEdFtDf-hA5I7LxZpa8UwuKfkxYBW9FLgZ4FXQa_dpRlox4rPITzozQ/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -645,21 +669,24 @@
                 }
                 
                 try {
-                    let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                    const listaInventario = data.inventario || [];
-                    listaInventario.forEach(i => {
-                        htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
-                    });
-                    document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
-                } catch (e) {}
-                
-                try {
-                    let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
-                    const listaInsumosPage = data.insumos || [];
-                    listaInsumosPage.forEach(is => {
-                        htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td>${is[5]}</td><td><strong>${is[6]}</strong></td></tr>`;
-                    });
-                    document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+                    function generarTablaHTML(matriz) {
+                        let html = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+                        (matriz || []).forEach(i => {
+                            html += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
+                        });
+                        return html + "</table>";
+                    }
+
+                    document.getElementById('tabla-inventario-box').innerHTML = generarTablaHTML(data.inventario);
+
+                    if (data.inventarioMedellin) {
+                        document.getElementById('tabla-medellin-box').innerHTML = generarTablaHTML(data.inventarioMedellin);
+                    }
+                    if (data.consignaciones) {
+                        document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(data.consignaciones.garu);
+                        document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(data.consignaciones.sebastian);
+                        document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(data.consignaciones.makeina);
+                    }
                 } catch (e) {}
             } catch(e) { console.error("Error general al cargar los datos:", e); }
         }
@@ -760,6 +787,7 @@
                 estado: document.getElementById('ped_estado').value,
                 vendedor: document.getElementById('ped_vendedor').value,
                 tipoPedido: document.getElementById('ped_tipopedido').value,
+                bodegaOrigen: document.getElementById('ped_bodega_origen').value, // NUEVO CAMPO
                 productosArray: productosArray
             });
         }
@@ -912,6 +940,27 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
                 }
+                function evaluarTipoPedido() {
+            let tipo = document.getElementById('ped_tipopedido').value;
+            let grupoBodega = document.getElementById('grupo_bodega_origen');
+            if (tipo === "Consignación") {
+                grupoBodega.classList.remove('hidden');
+            } else {
+                grupoBodega.classList.add('hidden');
+            }
+        }
+
+        function verSubInvMedellin(idSub) {
+            document.getElementById('tabla-medellin-box').classList.add('hidden');
+            document.getElementById('tabla-garu-box').classList.add('hidden');
+            document.getElementById('tabla-sebastian-box').classList.add('hidden');
+            document.getElementById('tabla-makeina-box').classList.add('hidden');
+
+            if (idSub === 'medellin_principal') document.getElementById('tabla-medellin-box').classList.remove('hidden');
+            if (idSub === 'garu') document.getElementById('tabla-garu-box').classList.remove('hidden');
+            if (idSub === 'sebastian') document.getElementById('tabla-sebastian-box').classList.remove('hidden');
+            if (idSub === 'makeina') document.getElementById('tabla-makeina-box').classList.remove('hidden');
+        }
             });
         }
     </script>
