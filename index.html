@@ -842,7 +842,7 @@ try {
     if (bodegaSeleccionada === null) return; 
     bodegaSeleccionada = bodegaSeleccionada.trim() === "" ? "Principal" : bodegaSeleccionada.trim();
 
-    // 2. Ventana de confirmación
+    // 2. Ventana de confirmación estricta
     let mensajeConfirmacion = `⚠️ ADVERTENCIA DE INVENTARIO:\n\n` +
         `Estás a punto de despachar el pedido #${numPedido}.\n` +
         `Bodega de origen seleccionada: [ ${bodegaSeleccionada.toUpperCase()} ]\n\n` +
@@ -851,23 +851,22 @@ try {
     let seguro = confirm(mensajeConfirmacion);
     if (!seguro) return;
 
-    // 3. Ejecutar el envío al backend usando parámetros de formulario nativos
+    // 3. Ejecutar el envío al backend usando la nomenclatura exacta que espera tu Apps Script
     try {
-        const params = new URLSearchParams();
-        params.append("accion", "despachar_pedido");
-        params.append("numPedido", numPedido);
-        params.append("bodega", bodegaSeleccionada);
-        params.append("tipoPedido", tipoPedido);
-
         const respuesta = await fetch(URL_GOOGLE_SCRIPT, {
             method: "POST",
-            body: params // <-- Corrección vital: se envía como formulario, no como JSON
+            body: JSON.stringify({
+                accion: "despachar_pedido",
+                numeroPedido: numPedido,       // Nombre de variable exacto esperado por el backend
+                bodegaOrigen: bodegaSeleccionada // Nombre de variable exacto esperado por el backend
+            })
         });
 
         const resultado = await respuesta.json();
 
-        if (resultado.exito || resultado.estado === "ok") {
-            alert(`✅ ¡Pedido #${numPedido} despachado con éxito desde la bodega ${bodegaSeleccionada}!`);
+        // Tu servidor responde con "estado": "exito" (línea 173 de tu código)
+        if (resultado.estado === "exito") {
+            alert(`✅ ¡Pedido #${numPedido} despachado con éxito!\nBodega afectada: ${bodegaSeleccionada.toUpperCase()}`);
             cargarDatosBase(); 
         } else {
             alert(`❌ Error al despachar: ${resultado.mensaje || "Respuesta desconocida del servidor."}`);
