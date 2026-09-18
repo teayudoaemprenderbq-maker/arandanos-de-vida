@@ -583,132 +583,131 @@
         }
 
         async function cargarDatosBase() {
-            try {
-                const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
-                const data = res.ok ? await res.json() : null; 
-                if (!data) return; 
-                
-                try {
-                    baseDatosClientes = data.clientes || [];
-                    let dataCli = "";
-                    baseDatosClientes.forEach(cli => {
-                        if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
-                    });
-                    document.getElementById('lista-clientes').innerHTML = dataCli;
-                    
-                    baseDatosProductos = data.productos || [];
-                    baseDatosConsignaciones = datos.consignaciones || [];
-                    renderizarTablaConsignaciones();
-                    let dataProd = "";
-                    let selectManual = "<option value=''>Seleccione un producto...</option>";
-                    baseDatosProductos.forEach(prod => { 
-                        if (prod && prod[1]) {
-                            dataProd += `<option value="${prod[1]}">`; 
-                            selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
-                        }
-                    });
-                    document.getElementById('lista-productos-datalist').innerHTML = dataProd;
-                    document.getElementById('manual_prod_select').innerHTML = selectManual;
-                    if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
-                } catch (errClientes) {
-                    console.error("Error al cargar clientes o productos:", errClientes);
+    try {
+        const res = await fetch(URL_GOOGLE_SCRIPT + "?accion=obtener_todo&_ts=" + new Date().getTime());
+        const data = res.ok ? await res.json() : null; 
+        if (!data) return; 
+        
+        try {
+            baseDatosClientes = data.clientes || [];
+            let dataCli = "";
+            baseDatosClientes.forEach(cli => {
+                if (cli && cli[0]) { dataCli += `<option value="${cli[0]}">`; }
+            });
+            document.getElementById('lista-clientes').innerHTML = dataCli;
+            
+            baseDatosProductos = data.productos || [];
+            baseDatosConsignaciones = data.consignaciones || []; // <-- CORREGIDO AQUÍ
+            renderizarTablaConsignaciones();
+            
+            let dataProd = "";
+            let selectManual = "<option value=''>Seleccione un producto...</option>";
+            baseDatosProductos.forEach(prod => { 
+                if (prod && prod[1]) {
+                    dataProd += `<option value="${prod[1]}">`; 
+                    selectManual += `<option value="${prod[0]}">${prod[1]}</option>`;
                 }
-                
-                try {
-                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
-                    const listaPedidos = data.pedidos || [];
-                    const pedidosAgrupados = {};
-                    
-                    listaPedidos.forEach((p) => {
-                        const numPedido = p[0];
-                        if (!pedidosAgrupados[numPedido]) {
-                            pedidosAgrupados[numPedido] = {
-                                fecha: p[1],
-                                cliente: p[2],
-                                productosHtml: "",
-                                totalPedido: 0,
-                                estadoGeneral: p[14] || "ingresado",
-                                tipoPedido: p[16] || "",
-                                items: []
-                            };
-                        }
-                        let cant = p[11] || 0;
-                        let nombreProd = p[9] || "";
-                        let totalItem = parseFloat(p[13]) || 0;
-                        
-                        pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
-                        pedidosAgrupados[numPedido].totalPedido += totalItem;
-                    });
-                    
-                    Object.keys(pedidosAgrupados).forEach(numPedido => {
-                        let ped = pedidosAgrupados[numPedido];
-                        let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
-                        let botonAccion = esDespachado 
-                            ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
-                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;
-                            
-                        htmlPedidos += `<tr>
-                            <td>${numPedido}</td>
-                            <td>${ped.fecha}</td>
-                            <td>${ped.cliente}</td>
-                            <td>${ped.productosHtml}</td>
-                            <td>$${ped.totalPedido}</td>
-                            <td><strong>${ped.estadoGeneral}</strong></td>
-                            <td>${botonAccion}</td>
-                        </tr>`;
-                    });
-                    document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
-                } catch (errPedidos) {
-                    console.error("Error al cargar la tabla de pedidos:", errPedidos);
+            });
+            document.getElementById('lista-productos-datalist').innerHTML = dataProd;
+            document.getElementById('manual_prod_select').innerHTML = selectManual;
+            if (document.getElementById('contenedor-productos').children.length === 0) { agregarFilaProducto(); }
+        } catch (errClientes) {
+            console.error("Error al cargar clientes o productos:", errClientes);
+        }
+        
+        try {
+            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+            const listaPedidos = data.pedidos || [];
+            const pedidosAgrupados = {};
+            
+            listaPedidos.forEach((p) => {
+                const numPedido = p[0];
+                if (!pedidosAgrupados[numPedido]) {
+                    pedidosAgrupados[numPedido] = {
+                        fecha: p[1],
+                        cliente: p[2],
+                        productosHtml: "",
+                        totalPedido: 0,
+                        estadoGeneral: p[14] || "ingresado",
+                        tipoPedido: p[16] || "",
+                        items: []
+                    };
                 }
+                let cant = p[11] || 0;
+                let nombreProd = p[9] || "";
+                let totalItem = parseFloat(p[13]) || 0;
                 
-                try {
-                    let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                    const listaInventario = data.inventario || [];
-                    listaInventario.forEach(i => {
-                        htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
-                    });
-                    document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
-                } catch (e) {}
-                // Bloque nuevo para renderizar Bodega Medellín
-// Renderizar inventario de Bodega Medellín
-            try {
-                let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
-                const listaMedellin = data.inventarioMedellin || [];
-                
-                // Omitir encabezados si vienen de Sheets
-                const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
-                    ? listaMedellin.slice(1) 
-                    : listaMedellin;
+                pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
+                pedidosAgrupados[numPedido].totalPedido += totalItem;
+            });
+            
+            Object.keys(pedidosAgrupados).forEach(numPedido => {
+                let ped = pedidosAgrupados[numPedido];
+                let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
+                let botonAccion = esDespachado 
+                    ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
+                    : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;
+                    
+                htmlPedidos += `<tr>
+                    <td>${numPedido}</td>
+                    <td>${ped.fecha}</td>
+                    <td>${ped.cliente}</td>
+                    <td>${ped.productosHtml}</td>
+                    <td>$${ped.totalPedido}</td>
+                    <td><strong>${ped.estadoGeneral}</strong></td>
+                    <td>${botonAccion}</td>
+                </tr>`;
+            });
+            document.getElementById('tabla-pedidos-box').innerHTML = htmlPedidos + "</table>";
+        } catch (errPedidos) {
+            console.error("Error al cargar la tabla de pedidos:", errPedidos);
+        }
+        
+        try {
+            let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+            const listaInventario = data.inventario || [];
+            listaInventario.forEach(i => {
+                htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
+            });
+            document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+        } catch (e) {}
 
-                filasDatos.forEach(i => {
-                    htmlMedellin += `<tr>
-                        <td>${i[0] || ''}</td>
-                        <td>${i[1] || ''}</td>
-                        <td>${i[2] || ''}</td>
-                        <td>${i[3] || 0}</td>
-                        <td>${i[4] || 0}</td>
-                        <td>${i[5] || 0}</td>
-                        <td><strong>${i[6] || i[7] || 0}</strong></td>
-                    </tr>`;
-                });
-                
-                document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
-            } catch (errMed) {
-                console.error("Error al renderizar Bodega Medellín:", errMed);
-                document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
-            }
-                try {
-                    let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
-                    const listaInsumosPage = data.insumos || [];
-                    listaInsumosPage.forEach(is => {
-                        htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td>${is[5]}</td><td><strong>${is[6]}</strong></td></tr>`;
-                    });
-                    document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
-                } catch (e) {}
-            } catch(e) { console.error("Error general al cargar los datos:", e); }
+        try {
+            let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
+            const listaMedellin = data.inventarioMedellin || [];
+            
+            const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
+                ? listaMedellin.slice(1) 
+                : listaMedellin;
+
+            filasDatos.forEach(i => {
+                htmlMedellin += `<tr>
+                    <td>${i[0] || ''}</td>
+                    <td>${i[1] || ''}</td>
+                    <td>${i[2] || ''}</td>
+                    <td>${i[3] || 0}</td>
+                    <td>${i[4] || 0}</td>
+                    <td>${i[5] || 0}</td>
+                    <td><strong>${i[6] || i[7] || 0}</strong></td>
+                </tr>`;
+            });
+            
+            document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
+        } catch (errMed) {
+            console.error("Error al renderizar Bodega Medellín:", errMed);
+            document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
         }
 
+        try {
+            let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
+            const listaInsumosPage = data.insumos || [];
+            listaInsumosPage.forEach(is => {
+                htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td>${is[5]}</td><td><strong>${is[6]}</strong></td></tr>`;
+            });
+            document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+        } catch (e) {}
+    } catch(e) { console.error("Error general al cargar los datos:", e); }
+}
         function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
