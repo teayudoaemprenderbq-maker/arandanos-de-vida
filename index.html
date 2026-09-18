@@ -822,33 +822,62 @@ try {
             });
         }
 
-        async function despacharPedidoCompleto(numeroPedido, tipoPedido) {
-            let bodegaDestino = "Inventario";
-            let tipo = String(tipoPedido).trim();
-            
-            if (tipo === "Consignación") {
-                let mensaje = "¿Deseas despachar el pedido " + numeroPedido + "?\n\nAl ser Consignación, elige de qué bodega descontar:\n1. Inventario (Principal)\n2. Inventario Medellin\n\n(Escribe 1 o 2)";
-                let seleccion = prompt(mensaje);
-                
-                if (seleccion === null) return; 
-                
-                if (seleccion === "2") {
-                    bodegaDestino = "Inventario Medellin";
-                } else if (seleccion !== "1") {
-                    alert("Opción no válida. Despacho cancelado.");
-                    return;
-                }
-            } else {
-                let mensajeFirme = "¿Deseas despachar el pedido " + numeroPedido + " desde el Inventario Principal?";
-                if (!confirm(mensajeFirme)) return;
-            }
+        async function despacharPedidoCompleto(numPedido, tipoPedido) {
+    // 1. Solicitar o confirmar la bodega de despacho
+    let bodegaSeleccionada = prompt(
+        `📦 DESPACHO DE PEDIDO #${numPedido}\n\n` +
+        `Escribe el nombre de la bodega de origen:\n` +
+        `- Escribe "Principal" (o deja vacío)\n` +
+        `- Escribe "Medellin" para descontar de la bodega de Medellín`,
+        "Principal"
+    );
 
-            await enviarDatos({ 
-                accion: "despachar_pedido_completo", 
-                numeroPedido: numeroPedido,
-                bodegaOrigen: bodegaDestino 
-            });
+    // Si el usuario cancela el prompt, detenemos todo
+    if (bodegaSeleccionada === null) return; 
+
+    bodegaSeleccionada = bodegaSeleccionada.trim() === "" ? "Principal" : bodegaSeleccionada.trim();
+
+    // 2. Ventana de confirmación estricta exigida por el proceso
+    let mensajeConfirmacion = `⚠️ ADVERTENCIA DE INVENTARIO:\n\n` +
+        `Estás a punto de despachar el pedido #${numPedido}.\n` +
+        `Bodega de origen seleccionada: [ ${bodegaSeleccionada.toUpperCase()} ]\n\n` +
+        `¿Confirmas que esta es la bodega correcta y deseas proceder con el descuento de stock?`;
+
+    let seguro = confirm(mensajeConfirmacion);
+    if (!seguro) {
+        console.log("Despacho cancelado por el usuario.");
+        return;
+    }
+
+    // 3. Ejecutar el envío al backend de Google Apps Script
+    try {
+        // Muestra un indicador visual opcional o deshabilita botones si lo deseas
+        console.log(`Enviando despacho del pedido ${numPedido} desde bodega ${bodegaSeleccionada}...`);
+
+        const respuesta = await fetch(URL_GOOGLE_SCRIPT, {
+            method: "POST",
+            body: JSON.stringify({
+                accion: "despachar_pedido",
+                numPedido: numPedido,
+                bodega: bodegaSeleccionada,
+                tipoPedido: tipoPedido
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (resultado.exito || resultado.estado === "ok") {
+            alert(`✅ ¡Pedido #${numPedido} despachado con éxito desde la bodega ${bodegaSeleccionada}!`);
+            cargarDatosBase(); // Recarga las tablas para ver el stock actualizado al instante
+        } else {
+            alert(`❌ Error al despachar: ${resultado.mensaje || "Respuesta desconocida del servidor."}`);
         }
+
+    } catch (error) {
+        console.error("Error de red al despachar:", error);
+        alert("❌ Error de conexión al intentar procesar el despacho.");
+    }
+}
         function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 300, height: 150 } },
