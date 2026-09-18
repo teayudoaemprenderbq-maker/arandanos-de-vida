@@ -839,43 +839,36 @@ try {
         "Principal"
     );
 
-    // Si el usuario cancela el prompt, detenemos todo
     if (bodegaSeleccionada === null) return; 
-
     bodegaSeleccionada = bodegaSeleccionada.trim() === "" ? "Principal" : bodegaSeleccionada.trim();
 
-    // 2. Ventana de confirmación estricta exigida por el proceso
+    // 2. Ventana de confirmación
     let mensajeConfirmacion = `⚠️ ADVERTENCIA DE INVENTARIO:\n\n` +
         `Estás a punto de despachar el pedido #${numPedido}.\n` +
         `Bodega de origen seleccionada: [ ${bodegaSeleccionada.toUpperCase()} ]\n\n` +
         `¿Confirmas que esta es la bodega correcta y deseas proceder con el descuento de stock?`;
 
     let seguro = confirm(mensajeConfirmacion);
-    if (!seguro) {
-        console.log("Despacho cancelado por el usuario.");
-        return;
-    }
+    if (!seguro) return;
 
-    // 3. Ejecutar el envío al backend de Google Apps Script
+    // 3. Ejecutar el envío al backend usando parámetros de formulario nativos
     try {
-        // Muestra un indicador visual opcional o deshabilita botones si lo deseas
-        console.log(`Enviando despacho del pedido ${numPedido} desde bodega ${bodegaSeleccionada}...`);
+        const params = new URLSearchParams();
+        params.append("accion", "despachar_pedido");
+        params.append("numPedido", numPedido);
+        params.append("bodega", bodegaSeleccionada);
+        params.append("tipoPedido", tipoPedido);
 
         const respuesta = await fetch(URL_GOOGLE_SCRIPT, {
             method: "POST",
-            body: JSON.stringify({
-                accion: "despachar_pedido",
-                numPedido: numPedido,
-                bodega: bodegaSeleccionada,
-                tipoPedido: tipoPedido
-            })
+            body: params // <-- Corrección vital: se envía como formulario, no como JSON
         });
 
         const resultado = await respuesta.json();
 
         if (resultado.exito || resultado.estado === "ok") {
             alert(`✅ ¡Pedido #${numPedido} despachado con éxito desde la bodega ${bodegaSeleccionada}!`);
-            cargarDatosBase(); // Recarga las tablas para ver el stock actualizado al instante
+            cargarDatosBase(); 
         } else {
             alert(`❌ Error al despachar: ${resultado.mensaje || "Respuesta desconocida del servidor."}`);
         }
