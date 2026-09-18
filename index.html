@@ -187,14 +187,16 @@
             <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
+                <button id="subtab-admin-medellin" onclick="cambiarSubPestaña('admin-medellin')">Bodega Medellín</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
             </div>
             <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
+            <div id="admin-medellin" class="admin-section"><div class="table-container" id="tabla-medellin-box">Cargando...</div></div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
-
-        <!-- PESTAÑA ESTADÍSTICAS -->
+    
+            <!-- PESTAÑA ESTADÍSTICAS -->
         <section id="sec-estadisticas" class="card hidden">
             <div class="cabecera-panel">
                 <h3 style="border: none; margin: 0; padding: 0;">Panel de Estadísticas</h3>
@@ -279,7 +281,7 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxUKbJuTmeZ7sh0U_KOsNyAPHVCYv5fXntYjaHvkahhCzcVzrKROZ5sStqXHGKon_IQtg/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQB4VRkmbDuLEShFo5pqbEXPsn2njr1TWWRBrXuWmzZqUeV9Bwcxe8LHsVibo1rgPL3A/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -655,7 +657,34 @@
                     });
                     document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
                 } catch (e) {}
+                // Bloque nuevo para renderizar Bodega Medellín
+// Renderizar inventario de Bodega Medellín
+            try {
+                let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
+                const listaMedellin = data.inventarioMedellin || [];
                 
+                // Omitir encabezados si vienen de Sheets
+                const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
+                    ? listaMedellin.slice(1) 
+                    : listaMedellin;
+
+                filasDatos.forEach(i => {
+                    htmlMedellin += `<tr>
+                        <td>${i[0] || ''}</td>
+                        <td>${i[1] || ''}</td>
+                        <td>${i[2] || ''}</td>
+                        <td>${i[3] || 0}</td>
+                        <td>${i[4] || 0}</td>
+                        <td>${i[5] || 0}</td>
+                        <td><strong>${i[6] || i[7] || 0}</strong></td>
+                    </tr>`;
+                });
+                
+                document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
+            } catch (errMed) {
+                console.error("Error al renderizar Bodega Medellín:", errMed);
+                document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
+            }
                 try {
                     let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
                     const listaInsumosPage = data.insumos || [];
