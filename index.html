@@ -1038,7 +1038,11 @@
 
     html += `</tbody></table>`;
     contenedor.innerHTML = html;
+           
 }
+        cargarDatosBase().catch(err => {
+    console.error("Error no controlado en la carga inicial:", err);
+}); 
     </script>
 </body>
 </html>
