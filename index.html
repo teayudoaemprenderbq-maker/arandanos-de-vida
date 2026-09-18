@@ -672,32 +672,36 @@
             document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
         } catch (e) {}
 
-        try {
-            let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Saldo Actual</th></tr>";
-            const listaMedellin = data.inventarioMedellin || [];
-            
-            const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
-                ? listaMedellin.slice(1) 
-                : listaMedellin;
+        // Renderizar inventario de Bodega Medellín con las 10 columnas completas
+try {
+    let htmlMedellin = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>Inv. Inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+    const listaMedellin = data.inventarioMedellin || [];
+    
+    // Omitir encabezados si vienen repetidos desde Sheets
+    const filasDatos = (listaMedellin.length > 0 && String(listaMedellin[0][1]).includes("Código")) 
+        ? listaMedellin.slice(1) 
+        : listaMedellin;
 
-            filasDatos.forEach(i => {
-                htmlMedellin += `<tr>
-                    <td>${i[0] || ''}</td>
-                    <td>${i[1] || ''}</td>
-                    <td>${i[2] || ''}</td>
-                    <td>${i[3] || 0}</td>
-                    <td>${i[4] || 0}</td>
-                    <td>${i[5] || 0}</td>
-                    <td><strong>${i[6] || i[7] || 0}</strong></td>
-                </tr>`;
-            });
-            
-            document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
-        } catch (errMed) {
-            console.error("Error al renderizar Bodega Medellín:", errMed);
-            document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
-        }
-
+    filasDatos.forEach(i => {
+        htmlMedellin += `<tr>
+            <td>${i[0] || ''}</td>
+            <td>${i[1] || ''}</td>
+            <td>${i[2] || ''}</td>
+            <td>${i[3] || 0}</td>
+            <td>${i[4] || 0}</td>
+            <td>${i[5] || 0}</td>
+            <td>${i[6] || 0}</td>
+            <td><strong>${i[7] || 0}</strong></td>
+            <td>${i[8] || 0}</td>
+            <td><strong style="color:var(--primary);">${i[9] || 0}</strong></td>
+        </tr>`;
+    });
+    
+    document.getElementById('tabla-medellin-box').innerHTML = htmlMedellin + "</table>";
+} catch (errMed) {
+    console.error("Error al renderizar Bodega Medellín:", errMed);
+    document.getElementById('tabla-medellin-box').innerHTML = "<p>Error al cargar inventario de Medellín.</p>";
+}
         try {
             let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
             const listaInsumosPage = data.insumos || [];
