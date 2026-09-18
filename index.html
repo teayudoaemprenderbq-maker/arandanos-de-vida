@@ -629,16 +629,7 @@
                         let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
                         let botonAccion = esDespachado 
                             ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
-                            <div id="contenedor-bodega" style="margin-bottom: 15px;">
-  <label for="selectorBodega" style="font-weight: bold;">Selecciona la Bodega / Cliente:</label>
-  <select id="selectorBodega" style="padding: 5px; width: 100%;">
-    <option value="Principal">Bodega Principal (Inventario General)</option>
-    <option value="Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.">Mercado Garu Fit</option>
-    <option value="Sebastián Arango restrepo -Be Good">Be Good</option>
-    <option value="Makeina SAS">Makeina SAS</option>
-  </select>
-</div>
-                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${pedidosAgrupados[numPedido].tipoPedido}')">Despachar Pedido</button>`;
+                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${pedidosAgrupados[numPedido].tipoPedido}')">Despachar Pedido</button>`;
                         htmlPedidos += `<tr>
                             <td>${numPedido}</td>
                             <td>${ped.fecha}</td>
