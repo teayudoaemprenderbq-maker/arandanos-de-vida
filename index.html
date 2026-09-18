@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Arándanos de Vida</title>
-    <link rel="icon" href="data:," />
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -133,13 +132,6 @@
                     <option value="Consignación">Consignación</option>
                 </select>
             </div>
-            <div class="form-group hidden" id="grupo_bodega_origen">
-                <label>Bodega a Descargar</label>
-                <select id="ped_bodega_origen">
-                    <option value="Inventario">Inventario Principal</option>
-                    <option value="Inventario Medellin">Inventario Medellín</option>
-                </select>
-            </div>
             <button class="btn-submit" onclick="guardarPedido()">Guardar Pedido Completo</button>
         </section>
 
@@ -193,29 +185,12 @@
             <button id="btn-actualizar" class="btn-action" style="width:100%; margin-bottom: 1rem; padding: 0.6rem;" onclick="forzarActualizacion()">Actualizar Datos de la Nube</button>
             
             <div class="admin-nav">
-                <div class="admin-nav">
                 <button id="subtab-admin-pedidos" class="active-sub" onclick="cambiarSubPestaña('admin-pedidos')">Pedidos</button>
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
-                <button id="subtab-admin-medellin" onclick="cambiarSubPestaña('admin-medellin')">Inv. Medellín</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
-            </div>
             </div>
             <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
-            <div id="admin-medellin" class="admin-section">
-                <!-- Sub-navegación interna de Consignaciones -->
-                <div style="display: flex; gap: 5px; margin-bottom: 10px; background: #e2e8f0; padding: 5px; border-radius: 6px;">
-                    <button type="button" class="btn-action" style="background:var(--primary);" onclick="verSubInvMedellin('medellin_principal', this)">Bodega Medellín</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('garu', this)">Mercado Garu Fit</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('sebastian', this)">Sebastián Arango</button>
-                    <button type="button" class="btn-action" style="background:#64748b;" onclick="verSubInvMedellin('makeina', this)">Makeina SAS</button>
-                </div>
-
-                <div class="table-container" id="tabla-medellin-box">Cargando Medellín...</div>
-                <div class="table-container hidden" id="tabla-garu-box">Cargando Garu...</div>
-                <div class="table-container hidden" id="tabla-sebastian-box">Cargando Sebastián...</div>
-                <div class="table-container hidden" id="tabla-makeina-box">Cargando Makeina...</div>
-            </div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
         </section>
 
@@ -304,7 +279,7 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbybogmr5V-wV7wrW9UqFbPLLJrDULMs_kRkNbfgsT7dj-oPZIxACVPhcYLMzc65zfx8fA/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxUKbJuTmeZ7sh0U_KOsNyAPHVCYv5fXntYjaHvkahhCzcVzrKROZ5sStqXHGKon_IQtg/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
@@ -600,7 +575,6 @@
                 const data = res.ok ? await res.json() : null; 
                 if (!data) return; 
                 
-                // 1. Cargar Clientes y Productos
                 try {
                     baseDatosClientes = data.clientes || [];
                     let dataCli = "";
@@ -625,9 +599,8 @@
                     console.error("Error al cargar clientes o productos:", errClientes);
                 }
                 
-                // 2. Cargar Pedidos
                 try {
-                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Tipo Pedido</th><th>Acción</th></tr>";
+                    let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
                     const listaPedidos = data.pedidos || [];
                     const pedidosAgrupados = {};
                     
@@ -637,13 +610,13 @@
                             pedidosAgrupados[numPedido] = {
                                 fecha: p[1],
                                 cliente: p[2],
-                                tipoPedido: p[16] || "Firme", 
                                 productosHtml: "",
                                 totalPedido: 0,
                                 estadoGeneral: p[14] || "ingresado",
+                                tipoPedido: p[16] || "",
                                 items: []
-                            };        
-                        }
+                            };
+                        }                        }
                         let cant = p[11] || 0;
                         let nombreProd = p[9] || "";
                         let totalItem = parseFloat(p[13]) || 0;
@@ -651,14 +624,21 @@
                         pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
                         pedidosAgrupados[numPedido].totalPedido += totalItem;
                     });
-
                     Object.keys(pedidosAgrupados).forEach(numPedido => {
                         let ped = pedidosAgrupados[numPedido];
                         let esDespachado = (ped.estadoGeneral === "despachado" || ped.estadoGeneral === "entregado");
                         let botonAccion = esDespachado 
                             ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
-                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}')">Despachar Pedido</button>`;
-                        
+                            <div id="contenedor-bodega" style="margin-bottom: 15px;">
+  <label for="selectorBodega" style="font-weight: bold;">Selecciona la Bodega / Cliente:</label>
+  <select id="selectorBodega" style="padding: 5px; width: 100%;">
+    <option value="Principal">Bodega Principal (Inventario General)</option>
+    <option value="Mercado Garu Fit -INVERSIONES CORA & VIDA S.A.S.">Mercado Garu Fit</option>
+    <option value="Sebastián Arango restrepo -Be Good">Be Good</option>
+    <option value="Makeina SAS">Makeina SAS</option>
+  </select>
+</div>
+                            : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;
                         htmlPedidos += `<tr>
                             <td>${numPedido}</td>
                             <td>${ped.fecha}</td>
@@ -666,7 +646,6 @@
                             <td>${ped.productosHtml}</td>
                             <td>$${ped.totalPedido}</td>
                             <td><strong>${ped.estadoGeneral}</strong></td>
-                            <td><strong style="color: var(--primary);">${ped.tipoPedido}</strong></td>
                             <td>${botonAccion}</td>
                         </tr>`;
                     });
@@ -674,78 +653,28 @@
                 } catch (errPedidos) {
                     console.error("Error al cargar la tabla de pedidos:", errPedidos);
                 }
-
-                // 3. Cargar Insumos
-                try {
-                    if (data.insumos) {
-                        let htmlInsumos = "<table><tr><th>Fecha</th><th>Insumo</th><th>Entradas</th><th>Consumos</th><th>Salidas</th><th>Stock Actual</th></tr>";
-                        data.insumos.forEach(i => {
-                            htmlInsumos += `<tr>
-                                <td>${i[0] || ''}</td>
-                                <td>${i[1] || ''}</td>
-                                <td>${i[2] || 0}</td>
-                                <td>${i[3] || 0}</td>
-                                <td>${i[4] || 0}</td>
-                                <td><strong style="color:var(--primary);">${i[5] || 0}</strong></td>
-                            </tr>`;
-                        });
-                        document.getElementById('tabla-insumos-box').innerHTML = htmlInsumos + "</table>";
-                    }
-                } catch (errInsumos) {
-                    console.error("Error al cargar la tabla de insumos:", errInsumos);
-                }
                 
-                // 4. Cargar Inventarios y Subpestañas de Consignaciones (Búsqueda dinámica por palabras clave)
                 try {
-                    function generarTablaHTML(matriz) {
-                        let html = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
-                        if (!matriz || matriz.length === 0) {
-                            html += `<tr><td colspan="10" style="text-align:center; padding: 20px; color: #64748b;">No hay productos en esta bodega. Verifica que la pestaña exista en Google Sheets y tenga los EAN registrados.</td></tr>`;
-                        } else {
-                            matriz.forEach(i => {
-                                html += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
-                            });
-                        }
-                        return html + "</table>";
-                    }
-                    
-                    document.getElementById('tabla-inventario-box').innerHTML = generarTablaHTML(data.inventario);
-                    
-                    if (data.inventarioMedellin) {
-                        document.getElementById('tabla-medellin-box').innerHTML = generarTablaHTML(data.inventarioMedellin);
-                    }
-                    
-                    if (data.consignaciones) {
-                        let consignacionesKeys = Object.keys(data.consignaciones);
-                        let datosGaru = null;
-                        let datosSebastian = null;
-                        let datosMakeina = null;
+                    let htmlInv = "<table><tr><th>Fecha</th><th>Código EAN 13</th><th>Producto</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th><th>En pedido</th><th>Disponible</th></tr>";
+                    const listaInventario = data.inventario || [];
+                    listaInventario.forEach(i => {
+                        htmlInv += `<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td><td>${i[4]}</td><td>${i[5]}</td><td>${i[6]}</td><td><strong>${i[7]}</strong></td><td>${i[8]}</td><td><strong style="color:var(--primary);">${i[9]}</strong></td></tr>`;
+                    });
+                    document.getElementById('tabla-inventario-box').innerHTML = htmlInv + "</table>";
+                } catch (e) {}
+                
+                try {
+                    let htmlIns = "<table><tr><th>Fecha</th><th>Insumo</th><th>inv. inicial</th><th>Entradas</th><th>Salidas</th><th>Salidas D</th><th>Saldo Actual</th></tr>";
+                    const listaInsumosPage = data.insumos || [];
+                    listaInsumosPage.forEach(is => {
+                        htmlIns += `<tr><td>${is[0]}</td><td>${is[1]}</td><td>${is[2]}</td><td>${is[3]}</td><td>${is[4]}</td><td>${is[5]}</td><td><strong>${is[6]}</strong></td></tr>`;
+                    });
+                    document.getElementById('tabla-insumos-box').innerHTML = htmlIns + "</table>";
+                } catch (e) {}
+            } catch(e) { console.error("Error general al cargar los datos:", e); }
+        }
 
-                        consignacionesKeys.forEach(key => {
-                            let keyLower = key.toLowerCase();
-                            if (keyLower.includes('garu')) {
-                                datosGaru = data.consignaciones[key];
-                            }
-                            if (keyLower.includes('sebastian') || keyLower.includes('be good')) {
-                                datosSebastian = data.consignaciones[key];
-                            }
-                            if (keyLower.includes('makeina')) {
-                                datosMakeina = data.consignaciones[key];
-                            }
-                        });
-
-                        document.getElementById('tabla-garu-box').innerHTML = generarTablaHTML(datosGaru);
-                        document.getElementById('tabla-sebastian-box').innerHTML = generarTablaHTML(datosSebastian);
-                        document.getElementById('tabla-makeina-box').innerHTML = generarTablaHTML(datosMakeina);
-                    }
-                } catch (e) {
-                    console.error("Error al cargar inventarios:", e);
-                }
-
-            } catch(e) { 
-                console.error("Error general al cargar los datos:", e); 
-            }
-        }        function agregarFilaProducto() {
+        function agregarFilaProducto() {
             const contenedor = document.getElementById('contenedor-productos');
             const div = document.createElement('div');
             div.className = 'product-row';
@@ -797,36 +726,19 @@
         }
 
         async function enviarDatos(datos) {
-    try {
-        const res = await fetch(URL_GOOGLE_SCRIPT, { 
-            method: 'POST',
-            body: JSON.stringify(datos) 
-        });
-        
-        // Capturamos la respuesta como texto primero para evitar errores si el script devuelve HTML
-        const textoRespuesta = await res.text();
-        let respuesta;
-        
-        try {
-            respuesta = JSON.parse(textoRespuesta);
-        } catch (e) {
-            console.error("El servidor no devolvió un JSON válido:", textoRespuesta);
-            alert("⚠️ El servidor respondió con un formato inesperado. Revisa la consola (F12) para ver el detalle.");
-            return;
+            try {
+                await fetch(URL_GOOGLE_SCRIPT, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(datos) 
+                });
+                alert("Operación completada con éxito.");
+                setTimeout(cargarDatosBase, 1500); 
+            } catch (error) { 
+                alert("Ocurrió un error al enviar los datos."); 
+            }
         }
-        
-        if (respuesta.estado === "error") {
-            alert("❌ Error en el Servidor: " + respuesta.mensaje);
-        } else {
-            alert("✅ " + (respuesta.mensaje || "Operación completada con éxito."));
-            setTimeout(cargarDatosBase, 1500); 
-        }
-    } catch (error) { 
-        alert("⚠️ Ocurrió un error de red o de comunicación con el servidor."); 
-        console.error("Detalle del error:", error);
-    }
-}
-        
 
         function guardarPedido() {
             const filas = document.querySelectorAll('.product-row');
@@ -858,7 +770,6 @@
                 estado: document.getElementById('ped_estado').value,
                 vendedor: document.getElementById('ped_vendedor').value,
                 tipoPedido: document.getElementById('ped_tipopedido').value,
-                bodegaOrigen: document.getElementById('ped_bodega_origen').value, // NUEVO CAMPO
                 productosArray: productosArray
             });
         }
@@ -873,27 +784,32 @@
             });
         }
 
-       async function despacharPedidoCompleto(numeroPedido) {
-    // 1. Preguntamos desde qué bodega se despachará
-    let opcion = prompt("¿Desde qué bodega deseas despachar el pedido y descontar el inventario?\n\nEscribe el número correspondiente:\n1 = Inventario Principal\n2 = Inventario Medellín", "1");
-    
-    // Si haces clic en Cancelar, la función se detiene
-    if (opcion === null) {
-        return; 
-    }
-    
-    // 2. Evaluamos la respuesta
-    let bodegaSelect = (opcion === "2") ? "Inventario Medellin" : "Inventario";
-    
-    // 3. Confirmación final de seguridad
-    if (confirm(`⚠️ ATENCIÓN: Vas a despachar el pedido ${numeroPedido}.\n\nSe descontará la mercancía directamente de: [ ${bodegaSelect.toUpperCase()} ].\n\n¿Estás completamente segura de continuar?`)) {
-        await enviarDatos({ 
-            accion: "despachar_pedido_completo", 
-            numeroPedido: numeroPedido,
-            bodegaOrigen: bodegaSelect // Enviamos esta información exacta al script
-        });
-    }
-}
+        async function despacharPedidoCompleto(numeroPedido, tipoPedido) {
+            let bodegaDestino = "Inventario";
+            
+            // Si el pedido es Consignación, muestra el selector
+            if (String(tipoPedido).trim() === "Consignación") {
+                let seleccion = prompt(`¿Deseas despachar el pedido ${numeroPedido}?\n\nAl ser Consignación, elige de qué bodega descontar la mercancía:\n1. Inventario (Principal)\n2. Inventario Medellin\n\n(Escribe 1 o 2)`);
+                
+                if (seleccion === null) return; // Si el usuario cancela
+                
+                if (seleccion === "2") {
+                    bodegaDestino = "Inventario Medellin";
+                } else if (seleccion !== "1") {
+                    alert("Opción no válida. Despacho cancelado.");
+                    return;
+                }
+            } else {
+                // Si es un pedido normal en firme, pide confirmación simple
+                if (!confirm(`¿Deseas despachar el pedido ${numeroPedido} desde el Inventario Principal?`)) return;
+            }
+
+            await enviarDatos({ 
+                accion: "despachar_pedido_completo", 
+                numeroPedido: numeroPedido,
+                bodegaOrigen: bodegaDestino // Se envía la bodega al servidor
+            });
+        }
 
         function iniciarEscanner() {
             if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
@@ -1024,40 +940,8 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
                 }
-            }); // <-- ¡Aquí cerramos correctamente la creación del Chart!
+            });
         }
-
-        // Ahora estas funciones están libres e independientes
-        function evaluarTipoPedido() {
-            let tipo = document.getElementById('ped_tipopedido').value;
-            let grupoBodega = document.getElementById('grupo_bodega_origen');
-            if (tipo === "Consignación") {
-                grupoBodega.classList.remove('hidden');
-            } else {
-                grupoBodega.classList.add('hidden');
-            }
-        }
-
-        function verSubInvMedellin(idSub, botonSeleccionado) {
-    // 1. Ocultar todas las tablas
-    document.getElementById('tabla-medellin-box').classList.add('hidden');
-    document.getElementById('tabla-garu-box').classList.add('hidden');
-    document.getElementById('tabla-sebastian-box').classList.add('hidden');
-    document.getElementById('tabla-makeina-box').classList.add('hidden');
-    
-    // 2. Mostrar la tabla elegida
-    if (idSub === 'medellin_principal') document.getElementById('tabla-medellin-box').classList.remove('hidden');
-    if (idSub === 'garu') document.getElementById('tabla-garu-box').classList.remove('hidden');
-    if (idSub === 'sebastian') document.getElementById('tabla-sebastian-box').classList.remove('hidden');
-    if (idSub === 'makeina') document.getElementById('tabla-makeina-box').classList.remove('hidden');
-
-    // 3. Resaltar el botón seleccionado
-    if (botonSeleccionado) {
-        let botones = botonSeleccionado.parentElement.querySelectorAll('button');
-        botones.forEach(b => b.style.background = '#64748b'); // Restablecer color inactivo
-        botonSeleccionado.style.background = 'var(--primary)'; // Aplicar color activo
-    }
-}
     </script>
 </body>
 </html>
