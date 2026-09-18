@@ -616,7 +616,8 @@
         }
         
         try {
-            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Productos (Cant x Nombre)</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
+            // 1. Agregamos la columna 'Cant.' antes de 'Producto' en los encabezados
+            let htmlPedidos = "<table><tr><th>N° Pedido</th><th>Fecha</th><th>Cliente</th><th>Cant.</th><th>Producto</th><th>Total Pedido</th><th>Estado</th><th>Acción</th></tr>";
             const listaPedidos = data.pedidos || [];
             const pedidosAgrupados = {};
             
@@ -626,7 +627,8 @@
                     pedidosAgrupados[numPedido] = {
                         fecha: p[1],
                         cliente: p[2],
-                        productosHtml: "",
+                        cantidadesHtml: "", // Nueva variable para la columna de cantidades
+                        productosHtml: "",  
                         totalPedido: 0,
                         estadoGeneral: p[14] || "ingresado",
                         tipoPedido: p[16] || "",
@@ -637,7 +639,10 @@
                 let nombreProd = p[9] || "";
                 let totalItem = parseFloat(p[13]) || 0;
                 
-                pedidosAgrupados[numPedido].productosHtml += `• ${cant}x ${nombreProd} ($${totalItem})<br>`;
+                // 2. Construimos ambas columnas en paralelo usando divs protegidos contra saltos de línea
+                pedidosAgrupados[numPedido].cantidadesHtml += `<div style="margin-bottom:6px; font-weight:bold; text-align:center; color:#0f172a;">${cant}</div>`;
+                pedidosAgrupados[numPedido].productosHtml += `<div style="margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${nombreProd}">${nombreProd} <span style="color:#64748b; font-size:0.9em;">($${totalItem})</span></div>`;
+                
                 pedidosAgrupados[numPedido].totalPedido += totalItem;
             });
             
@@ -648,11 +653,13 @@
                     ? `<span style="color: #16a34a; font-weight: bold;">✔ Despachado</span>`
                     : `<button class="btn-action" onclick="despacharPedidoCompleto('${numPedido}', '${ped.tipoPedido}')">Despachar Pedido</button>`;
                     
+                // 3. Imprimimos las columnas separadas en la fila de la tabla
                 htmlPedidos += `<tr>
                     <td>${numPedido}</td>
                     <td>${ped.fecha}</td>
                     <td>${ped.cliente}</td>
-                    <td>${ped.productosHtml}</td>
+                    <td style="vertical-align: top; background-color: #f8fafc;">${ped.cantidadesHtml}</td>
+                    <td style="vertical-align: top;">${ped.productosHtml}</td>
                     <td>$${ped.totalPedido}</td>
                     <td><strong>${ped.estadoGeneral}</strong></td>
                     <td>${botonAccion}</td>
