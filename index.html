@@ -189,11 +189,21 @@
                 <button id="subtab-admin-prod" onclick="cambiarSubPestaña('admin-prod')">Prod. Terminados</button>
                 <button id="subtab-admin-medellin" onclick="cambiarSubPestaña('admin-medellin')">Bodega Medellín</button>
                 <button id="subtab-admin-insumos" onclick="cambiarSubPestaña('admin-insumos')">Insumos</button>
+                <button id="subtab-admin-consignaciones" onclick="cambiarSubPestaña('admin-consignaciones')">Consignaciones</button>
             </div>
             <div id="admin-pedidos" class="admin-section active-sub"><div class="table-container" id="tabla-pedidos-box">Cargando...</div></div>
             <div id="admin-prod" class="admin-section"><div class="table-container" id="tabla-inventario-box">Cargando...</div></div>
             <div id="admin-medellin" class="admin-section"><div class="table-container" id="tabla-medellin-box">Cargando...</div></div>
             <div id="admin-insumos" class="admin-section"><div class="table-container" id="tabla-insumos-box">Cargando...</div></div>
+            <div id="admin-consignaciones" class="admin-section">
+    <div style="margin-bottom: 10px; background: #f1f5f9; padding: 10px; border-radius: 6px;">
+        <label style="display:inline-block; margin-right: 10px; font-weight: bold;">Ver datos del cliente:</label>
+        <select id="filtro-cliente-consignacion" onchange="renderizarTablaConsignaciones()" style="width: auto; display: inline-block; padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1;">
+            <option value="TODOS">Todos los clientes</option>
+        </select>
+    </div>
+    <div class="table-container" id="tabla-consignaciones-box">Cargando...</div>
+</div>
         </section>
     
             <!-- PESTAÑA ESTADÍSTICAS -->
@@ -281,11 +291,12 @@
     <datalist id="lista-productos-datalist"></datalist>
 
     <script>
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyQB4VRkmbDuLEShFo5pqbEXPsn2njr1TWWRBrXuWmzZqUeV9Bwcxe8LHsVibo1rgPL3A/exec"; 
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz-PiZr4K9dAYm807i5QvMT-vP-wEu7EHs4Izb3knbjfMr-NMd-KKdqxqwZXpgUh84COQ/exec"; 
         let baseDatosClientes = [];
         let baseDatosProductos = [];
         let html5QrCode = null;
         let intervaloActualizacion;
+        let baseDatosConsignaciones = [];
 
         function inicializarApp() {
             generarNumeroPedido();
@@ -586,6 +597,8 @@
                     document.getElementById('lista-clientes').innerHTML = dataCli;
                     
                     baseDatosProductos = data.productos || [];
+                    baseDatosConsignaciones = datos.consignaciones || [];
+                    renderizarTablaConsignaciones();
                     let dataProd = "";
                     let selectManual = "<option value=''>Seleccione un producto...</option>";
                     baseDatosProductos.forEach(prod => { 
@@ -964,6 +977,69 @@
                 }
             });
         }
+        function renderizarTablaConsignaciones() {
+    let contenedor = document.getElementById("tabla-consignaciones-box");
+    if (!baseDatosConsignaciones || baseDatosConsignaciones.length === 0) {
+        contenedor.innerHTML = "<p style='padding:15px; text-align:center;'>No hay datos de consignaciones o están cargando...</p>";
+        return;
+    }
+
+    // 1. Cargar el filtro de clientes dinámicamente
+    let selectCliente = document.getElementById("filtro-cliente-consignacion");
+    let clienteSeleccionado = selectCliente.value;
+    
+    if (selectCliente.options.length <= 1) { 
+        let clientesUnicos = [...new Set(baseDatosConsignaciones.map(f => f[10]).filter(c => c))];
+        clientesUnicos.forEach(c => {
+            let opt = document.createElement("option");
+            opt.value = c;
+            opt.text = c;
+            selectCliente.appendChild(opt);
+        });
+    }
+
+    // 2. Construir la tabla con la estructura exacta que solicitaste
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cód. EAN 13</th>
+                <th>Producto</th>
+                <th>Inv. Inicial</th>
+                <th>Entradas</th>
+                <th>Salidas</th>
+                <th>Salidas D</th>
+                <th>Saldo Actual</th>
+                <th>En pedido</th>
+                <th>Disponible</th>
+                <th>Cliente/Bodega</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    baseDatosConsignaciones.forEach(fila => {
+        let clienteFila = fila[10];
+        // Aplicar el filtro según el desplegable
+        if (clienteSeleccionado === "TODOS" || clienteFila === clienteSeleccionado) {
+            html += `<tr>
+                <td>${fila[0] || ''}</td>
+                <td>${fila[1] || ''}</td>
+                <td>${fila[2] || ''}</td>
+                <td>${fila[3] || 0}</td>
+                <td style='color:green; font-weight:bold;'>${fila[4] || 0}</td>
+                <td style='color:red;'>${fila[5] || 0}</td>
+                <td>${fila[6] || 0}</td>
+                <td style='font-weight:bold;'>${fila[7] || 0}</td>
+                <td>${fila[8] || 0}</td>
+                <td style='color:#5b21b6; font-weight:bold;'>${fila[9] || 0}</td>
+                <td>${clienteFila || ''}</td>
+            </tr>`;
+        }
+    });
+
+    html += `</tbody></table>`;
+    contenedor.innerHTML = html;
+}
     </script>
 </body>
 </html>
